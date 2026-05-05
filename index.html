@@ -525,8 +525,10 @@ async function doShare(){
     if(!bOpen) toggleBanner()
     return
   }
-  if(!liff.isInClient()){
-    toast('請在 LINE App 內開啟此頁面才能分享','warn')
+
+  // 檢查 shareTargetPicker 是否可用
+  if(!liff.isApiAvailable('shareTargetPicker')){
+    toast('shareTargetPicker 未開啟，請在 LINE Developers Console 的 LIFF 設定裡啟用','err')
     return
   }
 
@@ -535,10 +537,14 @@ async function doShare(){
   btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 分享中...'
 
   try{
-    const result=await liff.shareTargetPicker([buildFlex()],{isMultiple:true})
+    const flex = buildFlex()
+    const result=await liff.shareTargetPicker([flex],{isMultiple:true})
     if(result){ toast('✓ 分享成功！','ok') }else{ toast('已取消分享','') }
   }catch(e){
-    toast('分享失敗：'+(e.message||'未知錯誤'),'err')
+    const msg = e.message || '未知錯誤'
+    toast('分享失敗：'+msg,'err')
+    // 顯示詳細錯誤在 console 方便除錯
+    console.error('[shareTargetPicker error]', e)
   }finally{
     btn.disabled=false
     btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> 分享給好友'
