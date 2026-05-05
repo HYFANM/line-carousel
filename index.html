@@ -314,7 +314,11 @@ function mkCard(){ return {title:'',url:'',dataUrl:'',imgUrl:'',mode:'up'} }
 function onLiffChange(){ liffOk=false; dot(''); document.getElementById('okMsg').classList.remove('show') }
 
 async function autoInit(id){
-  try{ await liff.init({liffId:id}); setReady(id) }catch(e){}
+  try{
+    await liff.init({liffId:id})
+    if(!liff.isLoggedIn()){ liff.login(); return }
+    setReady(id)
+  }catch(e){ console.warn('autoInit failed',e) }
 }
 
 async function initLiff(){
@@ -526,9 +530,23 @@ async function doShare(){
     return
   }
 
-  // 檢查 shareTargetPicker 是否可用
-  if(!liff.isApiAvailable('shareTargetPicker')){
-    toast('shareTargetPicker 未開啟，請在 LINE Developers Console 的 LIFF 設定裡啟用','err')
+  // 診斷資訊
+  const inClient = liff.isInClient()
+  const isLoggedIn = liff.isLoggedIn()
+  const apiOk = liff.isApiAvailable('shareTargetPicker')
+  console.log('[LIFF診斷] isInClient:', inClient, 'isLoggedIn:', isLoggedIn, 'shareTargetPicker可用:', apiOk)
+
+  if(!isLoggedIn){
+    toast('請先登入 LINE 帳號','warn')
+    liff.login()
+    return
+  }
+
+  if(!apiOk){
+    // 顯示詳細原因
+    let reason = 'shareTargetPicker 未啟用'
+    if(!inClient) reason += '（目前在外部瀏覽器，請在 LINE 內開啟）'
+    toast(reason,'err')
     return
   }
 
