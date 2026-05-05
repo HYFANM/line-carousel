@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LINE 輪播卡片產生器</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0e0e10; --sf:#18181c; --sf2:#222228; --sf3:#2a2a32;
+  --bd:rgba(255,255,255,0.07); --bdh:rgba(255,255,255,0.15);
+  --green:#06C755; --gdim:rgba(6,199,85,0.12); --glow:rgba(6,199,85,0.3);
+  --tx:#f0f0f0; --txm:#888; --txd:#444;
+  --red:#ff4d4d; --amber:#f5a623;
+  --r:14px; --rs:9px;
+}
+html{background:var(--bg);}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:116px;overflow-x:hidden;}
+
+/* Header */
+header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;background:linear-gradient(to bottom,var(--bg) 72%,transparent);}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-ic{width:30px;height:30px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.logo-ic svg{width:17px;height:17px;fill:#000;}
+.logo-tx{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.06em;color:var(--tx);}
+.hdr-r{display:flex;align-items:center;gap:8px;}
+.badge{font-family:'Syne',monospace;font-size:11px;font-weight:700;background:var(--sf2);border:1px solid var(--bd);border-radius:100px;padding:3px 11px;color:var(--txm);}
+.badge em{color:var(--green);font-style:normal;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--txd);transition:all .3s;}
+.dot.ok{background:var(--green);box-shadow:0 0 6px var(--glow);}
+.dot.err{background:var(--red);}
+
+/* LIFF Banner */
+.banner{margin:0 16px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;}
+.banner-hdr{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.banner-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;}
+.banner-arrow{color:var(--txd);font-size:11px;transition:transform .2s;}
+.banner-arrow.open{transform:rotate(180deg);}
+.banner-body{display:none;padding:0 16px 16px;}
+.banner-body.open{display:block;}
+
+.hint{margin-bottom:10px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);font-size:12px;color:var(--txm);line-height:1.75;}
+.hint a{color:var(--green);text-decoration:none;}
+.hint strong{color:var(--tx);font-weight:500;}
+
+.liff-row{display:flex;gap:8px;}
+.liff-inp{flex:1;padding:10px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:'Syne',monospace;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;}
+.liff-inp:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
+.liff-inp::placeholder{color:var(--txd);}
+.btn-conn{padding:10px 16px;background:var(--green);border:none;border-radius:var(--rs);color:#000;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.btn-conn:hover{background:#08e060;}
+
+.ok-msg{display:none;align-items:center;gap:8px;padding:9px 12px;background:var(--gdim);border:1px solid rgba(6,199,85,.3);border-radius:var(--rs);margin-top:10px;font-size:13px;color:var(--green);font-weight:500;}
+.ok-msg.show{display:flex;}
+
+/* Container */
+.wrap{padding:0 16px;max-width:600px;margin:0 auto;}
+.slabel{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);margin:20px 0 8px;}
+
+/* Strip */
+.strip-acts{display:flex;gap:8px;margin-bottom:8px;}
+.btn-add{display:flex;align-items:center;gap:5px;padding:6px 13px;background:var(--gdim);border:1px solid rgba(6,199,85,.4);border-radius:100px;color:var(--green);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;}
+.btn-add:hover{background:rgba(6,199,85,.2);}
+.btn-add:disabled{opacity:.3;cursor:not-allowed;}
+.btn-del{padding:6px 13px;background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.25);border-radius:100px;color:var(--red);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;}
+.btn-del:hover{background:rgba(255,77,77,.15);}
+.btn-del:disabled{opacity:.25;cursor:not-allowed;}
+
+.strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.strip::-webkit-scrollbar{display:none;}
+
+.pc{flex-shrink:0;width:148px;border-radius:11px;overflow:hidden;background:var(--sf);border:1.5px solid var(--bd);cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;position:relative;}
+.pc.act{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
+.pc:hover:not(.act){border-color:var(--bdh);transform:translateY(-2px);}
+.pc-img{width:100%;height:82px;background:var(--sf2);position:relative;overflow:hidden;}
+.pc-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.pc-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.pc-ph svg{width:22px;height:22px;opacity:.2;}
+.pc-n{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);color:#fff;font-size:9px;font-weight:800;font-family:'Syne',sans-serif;padding:2px 7px;border-radius:100px;}
+.pc-info{padding:7px 9px;}
+.pc-title{font-size:11px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pc-url{font-size:10px;color:var(--green);opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+
+/* Editor */
+.editor{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;}
+.etabs{display:flex;border-bottom:1px solid var(--bd);padding:0 14px;overflow-x:auto;scrollbar-width:none;}
+.etabs::-webkit-scrollbar{display:none;}
+.etab{padding:11px 14px 10px;font-size:12px;font-weight:700;color:var(--txd);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.etab.act{color:var(--green);border-bottom-color:var(--green);}
+.ebody{padding:18px 16px;}
+
+/* Fields */
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.flabel{display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txd);margin-bottom:5px;}
+.req{color:var(--green);}
+.cc{font-family:'Syne',monospace;font-size:10px;}
+.cc.warn{color:var(--red);}
+.fi{width:100%;padding:10px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:'Noto Sans TC',sans-serif;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;}
+.fi:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
+.fi::placeholder{color:var(--txd);}
+.fi.err{border-color:var(--red);}
+
+/* Img toggle */
+.itog{display:flex;gap:6px;margin-bottom:10px;}
+.itab{flex:1;padding:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--txm);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;}
+.itab.act{background:var(--gdim);border-color:rgba(6,199,85,.5);color:var(--green);}
+
+/* Upload zone */
+.upz{border:1.5px dashed var(--bd);border-radius:var(--rs);padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--sf2);}
+.upz:hover,.upz.drag{border-color:var(--green);background:var(--gdim);}
+.upz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upz svg{width:26px;height:26px;margin:0 auto 7px;opacity:.3;display:block;}
+.upz p{font-size:13px;color:var(--txm);}
+.upz small{font-size:11px;color:var(--txd);}
+.iprev{position:relative;border-radius:var(--rs);overflow:hidden;}
+.iprev img{width:100%;height:148px;object-fit:cover;display:block;}
+.iprev-rm{position:absolute;top:7px;right:7px;width:26px;height:26px;background:rgba(0,0,0,.7);border:none;border-radius:50%;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.rnote{font-size:11px;color:var(--txd);margin-top:5px;line-height:1.6;}
+.rnote strong{color:var(--amber);}
+.uprev{margin-top:8px;border-radius:var(--rs);overflow:hidden;display:none;}
+.uprev img{width:100%;height:128px;object-fit:cover;display:block;}
+
+/* JSON */
+.jsonbox{background:#090910;border:1px solid var(--bd);border-radius:var(--rs);padding:14px;font-family:'Syne',monospace;font-size:11px;color:#7ec87e;max-height:280px;overflow-y:auto;white-space:pre;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+
+/* Howto */
+.hsteps{display:flex;flex-direction:column;gap:8px;}
+.hs{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:var(--sf2);border-radius:var(--rs);border:1px solid var(--bd);}
+.hs-n{width:20px;height:20px;flex-shrink:0;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;font-family:'Syne',sans-serif;}
+.hs-n.w{background:var(--amber);}
+.hs-t{font-size:13px;color:var(--txm);line-height:1.65;}
+.hs-t strong{color:var(--tx);font-weight:500;}
+.hs-t a{color:var(--green);text-decoration:none;}
+.hs-t code{background:var(--sf3);border-radius:4px;padding:1px 6px;font-size:11px;font-family:'Syne',monospace;color:var(--green);}
+
+/* Bottom */
+.bot{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 22px;background:linear-gradient(to top,var(--bg) 65%,transparent);max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:8px;}
+.btn-share{width:100%;padding:15px;background:var(--green);border:none;border-radius:var(--r);color:#000;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;}
+.btn-share:hover{background:#08e060;transform:translateY(-1px);}
+.btn-share:active{transform:scale(.98);}
+.btn-share:disabled{background:var(--sf2);color:var(--txd);cursor:not-allowed;transform:none;}
+.btn-cj{width:100%;padding:11px;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--txm);font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-cj:hover{border-color:var(--bdh);color:var(--tx);}
+
+/* Toast */
+.toast{position:fixed;bottom:118px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:9px 18px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{border-color:rgba(6,199,85,.5);color:var(--green);}
+.toast.err{border-color:rgba(255,77,77,.5);color:var(--red);}
+.toast.warn{border-color:rgba(245,166,35,.5);color:var(--amber);}
+.sp{height:18px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-ic">
+      <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+    </div>
+    <span class="logo-tx">CAROUSEL</span>
+  </div>
+  <div class="hdr-r">
+    <div class="dot" id="liffDot"></div>
+    <div class="badge"><em id="cntNum">1</em> / 5</div>
+  </div>
+</header>
+
+<!-- LIFF Banner -->
+<div class="banner" id="banner">
+  <div class="banner-hdr" onclick="toggleBanner()">
+    <div class="banner-title">⚙️ <span id="bannerTitle">設定 LIFF ID（必填才能分享）</span></div>
+    <span class="banner-arrow open" id="bannerArrow">▼</span>
+  </div>
+  <div class="banner-body open" id="bannerBody">
+    <div class="hint">
+      需要一個免費的 <strong>LINE LIFF App ID</strong> 才能從個人帳號分享。<br>
+      👉 <a href="https://developers.line.biz/console/" target="_blank">LINE Developers Console</a> → Provider → Create LIFF App → 複製 LIFF ID<br>
+      Endpoint URL 填入這個 HTML 檔案的公開網址（需 HTTPS，可用 GitHub Pages）。
+    </div>
+    <div class="liff-row">
+      <input class="liff-inp" id="liffInp" type="text" placeholder="1234567890-AbCdEfGh" oninput="onLiffChange()">
+      <button class="btn-conn" onclick="initLiff()">連線</button>
+    </div>
+    <div class="ok-msg" id="okMsg">✓ LIFF 已連線，可以分享了！</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="sp"></div>
+
+  <p class="slabel">卡片預覽</p>
+  <div class="strip-acts">
+    <button class="btn-add" id="btnAdd" onclick="addCard()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      新增卡片
+    </button>
+    <button class="btn-del" id="btnDel" onclick="delCard()" disabled>刪除此張</button>
+  </div>
+  <div class="strip" id="strip"></div>
+
+  <p class="slabel">編輯 <span id="edLabel" style="color:var(--green)">① </span></p>
+  <div class="editor">
+    <div class="etabs">
+      <div class="etab act" onclick="switchTab('c',this)">圖文內容</div>
+      <div class="etab" onclick="switchTab('j',this)">JSON 預覽</div>
+      <div class="etab" onclick="switchTab('h',this)">發送教學</div>
+    </div>
+    <div class="ebody">
+
+      <!-- Content -->
+      <div id="tc">
+        <div class="field">
+          <div class="flabel">圖片</div>
+          <div class="itog">
+            <button class="itab act" id="itUp" onclick="setImg('up')">📁 上傳圖片</button>
+            <button class="itab" id="itUrl" onclick="setImg('url')">🔗 圖片網址</button>
+          </div>
+          <div id="mUp">
+            <div class="upz" id="upz"
+              ondragover="event.preventDefault();this.classList.add('drag')"
+              ondragleave="this.classList.remove('drag')"
+              ondrop="dropFile(event)">
+              <input type="file" id="fi" accept="image/jpeg,image/png,image/webp,image/gif" onchange="loadFile(this.files[0])">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <p>點擊或拖曳圖片</p>
+              <small>JPG · PNG · WebP，最大 5MB</small>
+            </div>
+            <div class="iprev" id="upPrev" style="display:none">
+              <img id="upImg" src="" alt="">
+              <button class="iprev-rm" onclick="rmUpload()">×</button>
+            </div>
+            <p class="rnote">⚠️ 上傳圖片會轉成 base64，<strong>LINE 可能無法顯示</strong>。建議改用圖片網址。</p>
+          </div>
+          <div id="mUrl" style="display:none">
+            <input class="fi" type="url" id="imgUrl" placeholder="https://example.com/photo.jpg" oninput="onUrlChange()">
+            <div class="uprev" id="urlPrev"><img id="urlImg" src="" alt="" onerror="this.parentElement.style.display='none'"></div>
+            <p class="rnote">建議使用公開 HTTPS 圖片連結，比例 20:13 或 1:1 最佳。</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="flabel">
+            標題 <span class="req">*</span>
+            <span class="cc" id="cc">0 / 40</span>
+          </div>
+          <input class="fi" type="text" id="fTitle" placeholder="輸入卡片標題（最多 40 字）" maxlength="40" oninput="onField()">
+        </div>
+
+        <div class="field">
+          <div class="flabel">點擊連結 <span class="req">*</span></div>
+          <input class="fi" type="url" id="fUrl" placeholder="https://..." oninput="onField()">
+          <p class="rnote" style="margin-top:5px">點擊卡片後跳轉的網址</p>
+        </div>
+      </div>
+
+      <!-- JSON -->
+      <div id="tj" style="display:none"><pre class="jsonbox" id="jbox"></pre></div>
+
+      <!-- Howto -->
+      <div id="th" style="display:none">
+        <div class="hsteps">
+          <div class="hs"><div class="hs-n">1</div><div class="hs-t">去 <a href="https://developers.line.biz/console/" target="_blank"><strong>LINE Developers Console</strong></a> 用你的 LINE 帳號登入</div></div>
+          <div class="hs"><div class="hs-n">2</div><div class="hs-t">建立 <strong>Provider</strong>（任意名稱）→ 點 <strong>「Create a LIFF app」</strong> → Size 選 <code>Full</code>，打開 <code>shareTargetPicker</code></div></div>
+          <div class="hs"><div class="hs-n">3</div><div class="hs-t"><strong>Endpoint URL</strong> 填入這個 HTML 的公開網址（可用 <a href="https://pages.github.com" target="_blank">GitHub Pages</a> 或 <a href="https://netlify.com" target="_blank">Netlify</a> 免費部署）</div></div>
+          <div class="hs"><div class="hs-n">4</div><div class="hs-t">建立後複製 <strong>LIFF ID</strong>（格式：<code>1234567890-AbCdEfGh</code>）→ 貼到上方欄位 → 按「連線」</div></div>
+          <div class="hs"><div class="hs-n">5</div><div class="hs-t">回到編輯頁，填好所有卡片 → 按下方 <strong>「分享給好友」</strong></div></div>
+          <div class="hs"><div class="hs-n">6</div><div class="hs-t">LINE 彈出好友選擇器 → 選人 → 送出 ✓ 對方收到的是<strong>你個人帳號</strong>發的可滑動卡片</div></div>
+          <div class="hs"><div class="hs-n w">!</div><div class="hs-t">此頁面必須<strong>在 LINE App 內部瀏覽器</strong>開啟才能呼叫分享。普通瀏覽器請改用下方「複製 JSON」備用。</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div style="height:120px"></div>
+</div>
+
+<!-- Bottom -->
+<div class="bot">
+  <button class="btn-share" id="btnShare" onclick="doShare()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    分享給好友
+  </button>
+  <button class="btn-cj" onclick="copyJson()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    複製 Flex JSON（備用）
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ────────────────────────────────────────────────
+const MAX = 5
+let cards = [mkCard()]
+let idx = 0
+let tab = 'c'
+let liffOk = false
+let bOpen = true
+
+function mkCard(){ return {title:'',url:'',dataUrl:'',imgUrl:'',mode:'up'} }
+
+// ── Boot ──────────────────────────────────────────────────
+;(()=>{
+  const s = localStorage.getItem('liff_id')
+  if(s){ document.getElementById('liffInp').value = s; autoInit(s) }
+  renderAll()
+})()
+
+// ── LIFF ──────────────────────────────────────────────────
+function onLiffChange(){ liffOk=false; dot(''); document.getElementById('okMsg').classList.remove('show') }
+
+async function autoInit(id){
+  try{ await liff.init({liffId:id}); setReady(id) }catch(e){}
+}
+
+async function initLiff(){
+  const id = document.getElementById('liffInp').value.trim()
+  if(!id){ toast('請輸入 LIFF ID','err'); return }
+  dot('')
+  toast('連線中…','')
+  try{
+    await liff.init({liffId:id})
+    setReady(id)
+    toast('✓ LIFF 連線成功','ok')
+  }catch(e){
+    dot('err')
+    toast('連線失敗：'+(e.message||'LIFF ID 可能有誤'),'err')
+  }
+}
+
+function setReady(id){
+  liffOk=true
+  localStorage.setItem('liff_id',id)
+  dot('ok')
+  document.getElementById('okMsg').classList.add('show')
+  document.getElementById('bannerTitle').textContent='LIFF 已連線 ✓'
+  if(bOpen) toggleBanner()
+}
+
+function dot(s){ document.getElementById('liffDot').className='dot'+(s?' '+s:'') }
+
+function toggleBanner(){
+  bOpen=!bOpen
+  document.getElementById('bannerBody').classList.toggle('open',bOpen)
+  document.getElementById('bannerArrow').classList.toggle('open',bOpen)
+}
+
+// ── Cards ─────────────────────────────────────────────────
+function addCard(){
+  if(cards.length>=MAX) return
+  save(); cards.push(mkCard()); idx=cards.length-1
+  renderAll(); toast('已新增 '+cn(idx),'ok')
+}
+function delCard(){
+  if(cards.length<=1) return
+  cards.splice(idx,1); if(idx>=cards.length) idx=cards.length-1
+  renderAll(); toast('已刪除','')
+}
+function selCard(i){ save(); idx=i; load(); renderStrip(); updLabel(); if(tab==='j') refreshJson() }
+
+// ── Save / Load ────────────────────────────────────────────
+function save(){
+  const c=cards[idx]
+  c.title=document.getElementById('fTitle').value
+  c.url=document.getElementById('fUrl').value
+  c.imgUrl=document.getElementById('imgUrl').value
+}
+function load(){
+  const c=cards[idx]
+  document.getElementById('fTitle').value=c.title
+  document.getElementById('fUrl').value=c.url
+  document.getElementById('imgUrl').value=c.imgUrl||''
+  updCC()
+  setModeUI(c.mode||'up')
+  // upload preview
+  if(c.mode==='up'){
+    if(c.dataUrl){
+      document.getElementById('upImg').src=c.dataUrl
+      document.getElementById('upPrev').style.display='block'
+      document.getElementById('upz').style.display='none'
+    }else{
+      document.getElementById('upPrev').style.display='none'
+      document.getElementById('upz').style.display='block'
+    }
+  }
+  // url preview
+  if(c.imgUrl){
+    const img=document.getElementById('urlImg')
+    img.src=c.imgUrl
+    document.getElementById('urlPrev').style.display='block'
+  }else{ document.getElementById('urlPrev').style.display='none' }
+}
+
+// ── Field events ──────────────────────────────────────────
+function onField(){ save(); renderStrip(); updCC(); if(tab==='j') refreshJson() }
+function updCC(){
+  const n=document.getElementById('fTitle').value.length
+  const el=document.getElementById('cc')
+  el.textContent=n+' / 40'; el.classList.toggle('warn',n>=38)
+}
+
+// ── Image ─────────────────────────────────────────────────
+function setImg(m){ save(); cards[idx].mode=m; setModeUI(m); if(tab==='j') refreshJson() }
+function setModeUI(m){
+  document.getElementById('mUp').style.display=m==='up'?'block':'none'
+  document.getElementById('mUrl').style.display=m==='url'?'block':'none'
+  document.getElementById('itUp').classList.toggle('act',m==='up')
+  document.getElementById('itUrl').classList.toggle('act',m==='url')
+}
+
+function loadFile(f){
+  if(!f) return
+  if(!f.type.startsWith('image/')){ toast('請選擇圖片','err'); return }
+  if(f.size>5*1024*1024){ toast('圖片需小於 5MB','err'); return }
+  const r=new FileReader()
+  r.onload=e=>{
+    cards[idx].dataUrl=e.target.result
+    document.getElementById('upImg').src=e.target.result
+    document.getElementById('upPrev').style.display='block'
+    document.getElementById('upz').style.display='none'
+    renderStrip(); if(tab==='j') refreshJson()
+  }
+  r.readAsDataURL(f)
+}
+function dropFile(e){
+  e.preventDefault(); document.getElementById('upz').classList.remove('drag')
+  const f=e.dataTransfer.files[0]; if(f) loadFile(f)
+}
+function rmUpload(){
+  cards[idx].dataUrl=''
+  document.getElementById('upPrev').style.display='none'
+  document.getElementById('upz').style.display='block'
+  document.getElementById('fi').value=''
+  renderStrip()
+}
+function onUrlChange(){
+  const url=document.getElementById('imgUrl').value.trim()
+  cards[idx].imgUrl=url
+  const prev=document.getElementById('urlPrev')
+  const img=document.getElementById('urlImg')
+  if(url.startsWith('http')){
+    img.src=url
+    img.onload=()=>{ prev.style.display='block' }
+    img.onerror=()=>{ prev.style.display='none' }
+  }else{ prev.style.display='none' }
+  renderStrip(); if(tab==='j') refreshJson()
+}
+
+// ── Tabs ──────────────────────────────────────────────────
+function switchTab(t,btn){
+  save(); tab=t
+  ;['c','j','h'].forEach(x=>{ document.getElementById('t'+x).style.display=x===t?'block':'none' })
+  document.querySelectorAll('.etab').forEach(b=>b.classList.remove('act'))
+  btn.classList.add('act')
+  if(t==='j') refreshJson()
+}
+
+// ── Render ────────────────────────────────────────────────
+function renderAll(){
+  renderStrip(); load(); updLabel()
+  document.getElementById('cntNum').textContent=cards.length
+  document.getElementById('btnAdd').disabled=cards.length>=MAX
+  document.getElementById('btnDel').disabled=cards.length<=1
+}
+function renderStrip(){
+  const strip=document.getElementById('strip')
+  strip.innerHTML=cards.map((c,i)=>{
+    const src=c.mode==='up'?c.dataUrl:c.imgUrl
+    let host=''
+    if(c.url){try{host=new URL(c.url).hostname}catch{host=c.url.slice(0,20)}}
+    return `<div class="pc ${i===idx?'act':''}" onclick="selCard(${i})">
+      <div class="pc-img">
+        <div class="pc-n">${cn(i)}</div>
+        ${src?`<img src="${src}" alt="" onerror="this.style.display='none'">`:`<div class="pc-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
+      </div>
+      <div class="pc-info">
+        <div class="pc-title">${c.title||'（無標題）'}</div>
+        <div class="pc-url">${host?'↗ '+host:'（未設連結）'}</div>
+      </div>
+    </div>`
+  }).join('')
+  setTimeout(()=>{
+    const a=strip.querySelector('.pc.act')
+    if(a) a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})
+  },50)
+}
+function updLabel(){ document.getElementById('edLabel').textContent=cn(idx)+' ' }
+function cn(i){ return['①','②','③','④','⑤'][i]||String(i+1) }
+
+// ── Flex JSON ─────────────────────────────────────────────
+function buildFlex(){
+  save()
+  const bubbles=cards.map(c=>{
+    const src=c.mode==='up'?c.dataUrl:(c.imgUrl||'')
+    const action=c.url?{type:'uri',label:c.title||'開啟連結',uri:c.url}:undefined
+    const bubble={type:'bubble',size:'kilo'}
+    if(src){
+      bubble.hero={type:'image',url:src,size:'full',aspectRatio:'20:13',aspectMode:'cover',action}
+    }
+    if(c.title){
+      bubble.body={type:'box',layout:'vertical',contents:[{type:'text',text:c.title.slice(0,40),weight:'bold',size:'md',wrap:true,color:'#111111'}],paddingAll:'md',action}
+    }
+    if(!src&&!c.title){
+      bubble.body={type:'box',layout:'vertical',contents:[{type:'text',text:'（空白卡片）',color:'#aaaaaa',size:'sm'}],paddingAll:'md'}
+    }
+    return bubble
+  })
+  return {type:'flex',altText:cards[0]?.title||'查看卡片訊息',contents:{type:'carousel',contents:bubbles}}
+}
+
+function refreshJson(){ document.getElementById('jbox').textContent=JSON.stringify(buildFlex(),null,2) }
+
+// ── Share ─────────────────────────────────────────────────
+async function doShare(){
+  save()
+  const hasContent=cards.some(c=>c.title||c.url||c.dataUrl||c.imgUrl)
+  if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
+
+  if(!liffOk){
+    toast('請先填入 LIFF ID 並按「連線」','warn')
+    if(!bOpen) toggleBanner()
+    return
+  }
+  if(!liff.isInClient()){
+    toast('請在 LINE App 內開啟此頁面才能分享','warn')
+    return
+  }
+
+  const btn=document.getElementById('btnShare')
+  btn.disabled=true
+  btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 分享中...'
+
+  try{
+    const result=await liff.shareTargetPicker([buildFlex()],{isMultiple:true})
+    if(result){ toast('✓ 分享成功！','ok') }else{ toast('已取消分享','') }
+  }catch(e){
+    toast('分享失敗：'+(e.message||'未知錯誤'),'err')
+  }finally{
+    btn.disabled=false
+    btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> 分享給好友'
+  }
+}
+
+// ── Copy JSON ─────────────────────────────────────────────
+function copyJson(){
+  navigator.clipboard.writeText(JSON.stringify(buildFlex(),null,2))
+    .then(()=>toast('✓ Flex JSON 已複製','ok'))
+    .catch(()=>toast('複製失敗','err'))
+}
+
+// ── Toast ─────────────────────────────────────────────────
+let _tt
+function toast(msg,type){
+  const el=document.getElementById('toast')
+  el.textContent=msg; el.className='toast show'+(type?' '+type:'')
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),2800)
+}
+</script>
+</body>
+</html>
