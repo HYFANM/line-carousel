@@ -417,22 +417,121 @@ function toggleBanner(){
 }
 
 // ── Templates ──────────────────────────────────────────────
+const IMG = {
+  market1: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80',
+  market2: 'https://images.unsplash.com/photo-1640340434855-6084b1f4901c?w=800&q=80',
+  family:  'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+  consult: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80',
+  news:    'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+  seminar: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+  plan:    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80',
+  shield:  'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&q=80',
+}
+
 const TEMPLATES = [
   { name:'市場週報', icon:'📊', desc:'每週市場資訊', cards:[
-    {title:'本週台股分析',body:'大盤指數與主力類股',url:'https://www.twse.com.tw',btns:[{label:'查看完整報告',url:'https://www.twse.com.tw'}]},
-    {title:'美股重點觀察',body:'Fed 動向與科技股',url:'https://finance.yahoo.com',btns:[{label:'Yahoo 財經',url:'https://finance.yahoo.com'}]},
+    {
+      title:'本週台股市場分析',
+      body:'大盤指數走勢與主力類股動態',
+      url:'https://www.twse.com.tw',
+      imgUrl: IMG.market1,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'📈 查看完整報告',url:'https://www.twse.com.tw'},
+        {label:'💬 加入討論',url:'https://line.me'},
+      ]
+    },
+    {
+      title:'美股重點觀察',
+      body:'Fed 動向與科技股表現解析',
+      url:'https://finance.yahoo.com',
+      imgUrl: IMG.market2,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'🌐 Yahoo 財經',url:'https://finance.yahoo.com'},
+      ]
+    },
   ]},
   { name:'保險觀念', icon:'🛡️', desc:'保險知識分享', cards:[
-    {title:'為什麼需要定期壽險？',body:'保障家人最實惠的方式',url:'https://www.lia-roc.org.tw',btns:[{label:'了解更多',url:'https://www.lia-roc.org.tw'},{label:'立即諮詢',url:'https://line.me'}]},
-    {title:'醫療險 vs 實支實付',body:'兩種保障的差異與選擇',url:'https://www.lia-roc.org.tw',btns:[{label:'比較方案',url:'https://www.lia-roc.org.tw'}]},
+    {
+      title:'為什麼需要定期壽險？',
+      body:'最實惠的方式守護家人',
+      url:'https://www.lia-roc.org.tw',
+      imgUrl: IMG.family,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'📖 了解更多',url:'https://www.lia-roc.org.tw'},
+        {label:'📞 立即諮詢',url:'https://line.me'},
+      ]
+    },
+    {
+      title:'醫療險 vs 實支實付',
+      body:'兩種保障的差異與選擇建議',
+      url:'https://www.lia-roc.org.tw',
+      imgUrl: IMG.consult,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'🔍 比較方案',url:'https://www.lia-roc.org.tw'},
+        {label:'📞 免費諮詢',url:'https://line.me'},
+      ]
+    },
+    {
+      title:'保單健檢，你做了嗎？',
+      body:'定期檢視保障，避免保障缺口',
+      url:'https://line.me',
+      imgUrl: IMG.plan,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'✅ 預約免費健檢',url:'https://line.me'},
+      ]
+    },
   ]},
   { name:'新聞解讀', icon:'📰', desc:'重要新聞解析', cards:[
-    {title:'今日財經重點新聞',body:'三分鐘掌握市場動態',url:'https://money.udn.com',btns:[{label:'閱讀全文',url:'https://money.udn.com'},{label:'LINE 討論',url:'https://line.me'}]},
-    {title:'政策變動對保險的影響',body:'最新法規解讀與建議',url:'https://www.fsc.gov.tw',btns:[{label:'金管會公告',url:'https://www.fsc.gov.tw'}]},
+    {
+      title:'今日財經重點新聞',
+      body:'三分鐘掌握市場關鍵動態',
+      url:'https://money.udn.com',
+      imgUrl: IMG.news,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'📰 閱讀全文',url:'https://money.udn.com'},
+        {label:'💬 LINE 留言討論',url:'https://line.me'},
+      ]
+    },
+    {
+      title:'政策變動對保險的影響',
+      body:'最新法規解讀，給你專業建議',
+      url:'https://www.fsc.gov.tw',
+      imgUrl: IMG.shield,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'🏛 金管會公告',url:'https://www.fsc.gov.tw'},
+        {label:'📞 諮詢我',url:'https://line.me'},
+      ]
+    },
   ]},
   { name:'活動通知', icon:'📅', desc:'講座說明會邀請', cards:[
-    {title:'免費線上理財說明會',body:'週六 14:00 線上直播',url:'https://line.me',btns:[{label:'立即報名',url:'https://line.me'},{label:'加好友詢問',url:'https://line.me'}]},
-    {title:'一對一保障檢視服務',body:'免費分析現有保單',url:'https://line.me',btns:[{label:'預約時段',url:'https://line.me'}]},
+    {
+      title:'免費線上理財說明會',
+      body:'週六 14:00 直播，名額有限！',
+      url:'https://line.me',
+      imgUrl: IMG.seminar,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'🎟 立即報名',url:'https://line.me'},
+        {label:'❓ 加好友詢問',url:'https://line.me'},
+      ]
+    },
+    {
+      title:'一對一保障檢視服務',
+      body:'免費分析您的現有保單缺口',
+      url:'https://line.me',
+      imgUrl: IMG.consult,
+      mode:'url', ratio:'20:13',
+      btns:[
+        {label:'📅 預約時段',url:'https://line.me'},
+      ]
+    },
   ]},
 ]
 function renderTemplates(){
