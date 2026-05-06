@@ -7,24 +7,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg:#0e0e10; --sf:#18181c; --sf2:#222228; --sf3:#2a2a32;
-  --bd:rgba(255,255,255,0.07); --bdh:rgba(255,255,255,0.15);
-  --green:#06C755; --gdim:rgba(6,199,85,0.12); --glow:rgba(6,199,85,0.3);
-  --tx:#f0f0f0; --txm:#888; --txd:#444;
-  --red:#ff4d4d; --amber:#f5a623;
-  --r:14px; --rs:9px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0e0e10;--sf:#18181c;--sf2:#222228;--sf3:#2a2a32;
+  --bd:rgba(255,255,255,0.07);--bdh:rgba(255,255,255,0.15);
+  --green:#06C755;--gdim:rgba(6,199,85,0.12);--glow:rgba(6,199,85,0.3);
+  --tx:#f0f0f0;--txm:#888;--txd:#444;
+  --red:#ff4d4d;--amber:#f5a623;--blue:#4a9eff;
+  --r:14px;--rs:9px;
 }
 html{background:var(--bg);}
-body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:116px;overflow-x:hidden;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:130px;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--sf3);border-radius:4px;}
 
-/* Header */
 header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:60;background:linear-gradient(to bottom,var(--bg) 72%,transparent);}
 .logo{display:flex;align-items:center;gap:9px;}
 .logo-ic{width:30px;height:30px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;}
 .logo-ic svg{width:17px;height:17px;fill:#000;}
-.logo-tx{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.06em;color:var(--tx);}
+.logo-tx{font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.06em;}
 .hdr-r{display:flex;align-items:center;gap:8px;}
 .badge{font-family:'Syne',monospace;font-size:11px;font-weight:700;background:var(--sf2);border:1px solid var(--bd);border-radius:100px;padding:3px 11px;color:var(--txm);}
 .badge em{color:var(--green);font-style:normal;}
@@ -32,7 +34,6 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .dot.ok{background:var(--green);box-shadow:0 0 6px var(--glow);}
 .dot.err{background:var(--red);}
 
-/* LIFF Banner */
 .banner{margin:0 16px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;}
 .banner-hdr{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
 .banner-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;}
@@ -40,26 +41,34 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .banner-arrow.open{transform:rotate(180deg);}
 .banner-body{display:none;padding:0 16px 16px;}
 .banner-body.open{display:block;}
-
 .hint{margin-bottom:10px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);font-size:12px;color:var(--txm);line-height:1.75;}
 .hint a{color:var(--green);text-decoration:none;}
 .hint strong{color:var(--tx);font-weight:500;}
-
 .liff-row{display:flex;gap:8px;}
-.liff-inp{flex:1;padding:10px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:'Syne',monospace;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;}
-.liff-inp:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
-.liff-inp::placeholder{color:var(--txd);}
+.inp-base{flex:1;padding:10px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:'Syne',monospace;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;}
+.inp-base:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
+.inp-base::placeholder{color:var(--txd);}
 .btn-conn{padding:10px 16px;background:var(--green);border:none;border-radius:var(--rs);color:#000;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .15s;}
 .btn-conn:hover{background:#08e060;}
-
 .ok-msg{display:none;align-items:center;gap:8px;padding:9px 12px;background:var(--gdim);border:1px solid rgba(6,199,85,.3);border-radius:var(--rs);margin-top:10px;font-size:13px;color:var(--green);font-weight:500;}
 .ok-msg.show{display:flex;}
+.cld-section{margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);}
+.cld-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.cld-inp{flex:1;min-width:120px;padding:9px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:'Syne',monospace;font-size:12px;outline:none;transition:border-color .15s;-webkit-appearance:none;}
+.cld-inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,158,255,0.15);}
+.cld-inp::placeholder{color:var(--txd);}
 
-/* Container */
 .wrap{padding:0 16px;max-width:600px;margin:0 auto;}
 .slabel{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);margin:20px 0 8px;}
 
-/* Strip */
+.tpl-scroll{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.tpl-scroll::-webkit-scrollbar{display:none;}
+.tpl-card{flex-shrink:0;padding:10px 14px;background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);cursor:pointer;transition:all .15s;min-width:110px;}
+.tpl-card:hover{border-color:var(--green);background:var(--gdim);}
+.tpl-ic{font-size:18px;margin-bottom:4px;}
+.tpl-name{font-size:11px;font-weight:700;}
+.tpl-desc{font-size:10px;color:var(--txm);margin-top:2px;line-height:1.4;}
+
 .strip-acts{display:flex;gap:8px;margin-bottom:8px;}
 .btn-add{display:flex;align-items:center;gap:5px;padding:6px 13px;background:var(--gdim);border:1px solid rgba(6,199,85,.4);border-radius:100px;color:var(--green);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;}
 .btn-add:hover{background:rgba(6,199,85,.2);}
@@ -67,31 +76,27 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .btn-del{padding:6px 13px;background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.25);border-radius:100px;color:var(--red);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;}
 .btn-del:hover{background:rgba(255,77,77,.15);}
 .btn-del:disabled{opacity:.25;cursor:not-allowed;}
-
 .strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
 .strip::-webkit-scrollbar{display:none;}
-
-.pc{flex-shrink:0;width:148px;border-radius:11px;overflow:hidden;background:var(--sf);border:1.5px solid var(--bd);cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;position:relative;}
+.pc{flex-shrink:0;width:138px;border-radius:11px;overflow:hidden;background:var(--sf);border:1.5px solid var(--bd);cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;}
 .pc.act{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
 .pc:hover:not(.act){border-color:var(--bdh);transform:translateY(-2px);}
-.pc-img{width:100%;height:82px;background:var(--sf2);position:relative;overflow:hidden;}
+.pc-img{width:100%;background:var(--sf2);position:relative;overflow:hidden;}
 .pc-img img{width:100%;height:100%;object-fit:cover;display:block;}
 .pc-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
 .pc-ph svg{width:22px;height:22px;opacity:.2;}
 .pc-n{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);color:#fff;font-size:9px;font-weight:800;font-family:'Syne',sans-serif;padding:2px 7px;border-radius:100px;}
 .pc-info{padding:7px 9px;}
-.pc-title{font-size:11px;font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pc-title{font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .pc-url{font-size:10px;color:var(--green);opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
 
-/* Editor */
 .editor{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;}
 .etabs{display:flex;border-bottom:1px solid var(--bd);padding:0 14px;overflow-x:auto;scrollbar-width:none;}
 .etabs::-webkit-scrollbar{display:none;}
-.etab{padding:11px 14px 10px;font-size:12px;font-weight:700;color:var(--txd);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.etab{padding:11px 12px 10px;font-size:12px;font-weight:700;color:var(--txd);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
 .etab.act{color:var(--green);border-bottom-color:var(--green);}
 .ebody{padding:18px 16px;}
 
-/* Fields */
 .field{margin-bottom:14px;}
 .field:last-child{margin-bottom:0;}
 .flabel{display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txd);margin-bottom:5px;}
@@ -101,32 +106,57 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .fi{width:100%;padding:10px 13px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:'Noto Sans TC',sans-serif;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;}
 .fi:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--gdim);}
 .fi::placeholder{color:var(--txd);}
-.fi.err{border-color:var(--red);}
 
-/* Img toggle */
+.ratio-tog{display:flex;gap:6px;flex-wrap:wrap;}
+.rtab{padding:6px 11px;background:var(--sf2);border:1px solid var(--bd);border-radius:100px;color:var(--txm);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.rtab.act{background:var(--gdim);border-color:rgba(6,199,85,.5);color:var(--green);}
+
 .itog{display:flex;gap:6px;margin-bottom:10px;}
 .itab{flex:1;padding:8px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--txm);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;}
 .itab.act{background:var(--gdim);border-color:rgba(6,199,85,.5);color:var(--green);}
 
-/* Upload zone */
 .upz{border:1.5px dashed var(--bd);border-radius:var(--rs);padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--sf2);}
 .upz:hover,.upz.drag{border-color:var(--green);background:var(--gdim);}
 .upz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .upz svg{width:26px;height:26px;margin:0 auto 7px;opacity:.3;display:block;}
 .upz p{font-size:13px;color:var(--txm);}
 .upz small{font-size:11px;color:var(--txd);}
-.iprev{position:relative;border-radius:var(--rs);overflow:hidden;}
-.iprev img{width:100%;height:148px;object-fit:cover;display:block;}
-.iprev-rm{position:absolute;top:7px;right:7px;width:26px;height:26px;background:rgba(0,0,0,.7);border:none;border-radius:50%;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.rnote{font-size:11px;color:var(--txd);margin-top:5px;line-height:1.6;}
-.rnote strong{color:var(--amber);}
+
+.crop-outer{margin-top:8px;border-radius:var(--rs);overflow:hidden;position:relative;background:var(--sf3);}
+.crop-inner{position:relative;width:100%;overflow:hidden;touch-action:none;user-select:none;cursor:grab;}
+.crop-inner:active{cursor:grabbing;}
+.crop-inner img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;}
+.crop-del{position:absolute;top:7px;right:7px;width:26px;height:26px;background:rgba(0,0,0,.7);border:none;border-radius:50%;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:5;line-height:1;}
+.crop-hint{font-size:10px;color:var(--txd);text-align:center;margin-top:5px;}
+
+.up-prog{margin-top:8px;padding:10px 12px;background:var(--sf2);border-radius:var(--rs);border:1px solid var(--bd);font-size:12px;color:var(--txm);display:none;align-items:center;gap:8px;}
+.up-prog.show{display:flex;}
+.spin{width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--green);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
 .uprev{margin-top:8px;border-radius:var(--rs);overflow:hidden;display:none;}
 .uprev img{width:100%;height:128px;object-fit:cover;display:block;}
+.rnote{font-size:11px;color:var(--txd);margin-top:5px;line-height:1.6;}
+.rnote strong{color:var(--amber);}
 
-/* JSON */
-.jsonbox{background:#090910;border:1px solid var(--bd);border-radius:var(--rs);padding:14px;font-family:'Syne',monospace;font-size:11px;color:#7ec87e;max-height:280px;overflow-y:auto;white-space:pre;line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.btns-box{border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden;background:var(--sf2);}
+.btns-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--bd);}
+.btns-hdr-tx{font-size:11px;font-weight:700;color:var(--txm);}
+.btn-ab{padding:4px 10px;background:var(--gdim);border:1px solid rgba(6,199,85,.4);border-radius:100px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;transition:background .15s;}
+.btn-ab:hover{background:rgba(6,199,85,.2);}
+.btn-ab:disabled{opacity:.3;cursor:not-allowed;}
+.btn-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.btn-row{display:flex;gap:6px;align-items:center;}
+.btn-inputs{flex:1;display:flex;flex-direction:column;gap:4px;}
+.fi-s{width:100%;padding:7px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--tx);font-family:'Noto Sans TC',sans-serif;font-size:12px;outline:none;transition:border-color .15s;-webkit-appearance:none;}
+.fi-s:focus{border-color:var(--green);}
+.fi-s::placeholder{color:var(--txd);}
+.btn-rm{width:24px;height:24px;background:rgba(255,77,77,.1);border:1px solid rgba(255,77,77,.25);border-radius:6px;color:var(--red);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;}
+.btn-rm:hover{background:rgba(255,77,77,.2);}
+.btns-empty{padding:14px 12px;text-align:center;font-size:12px;color:var(--txd);}
 
-/* Howto */
+.jsonbox{background:#090910;border:1px solid var(--bd);border-radius:var(--rs);padding:14px;font-family:'Syne',monospace;font-size:11px;color:#7ec87e;max-height:280px;overflow-y:auto;white-space:pre;line-height:1.7;}
+
 .hsteps{display:flex;flex-direction:column;gap:8px;}
 .hs{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:var(--sf2);border-radius:var(--rs);border:1px solid var(--bd);}
 .hs-n{width:20px;height:20px;flex-shrink:0;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#000;font-family:'Syne',sans-serif;}
@@ -136,7 +166,6 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .hs-t a{color:var(--green);text-decoration:none;}
 .hs-t code{background:var(--sf3);border-radius:4px;padding:1px 6px;font-size:11px;font-family:'Syne',monospace;color:var(--green);}
 
-/* Bottom */
 .bot{position:fixed;bottom:0;left:0;right:0;padding:12px 16px 22px;background:linear-gradient(to top,var(--bg) 65%,transparent);max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:8px;}
 .btn-share{width:100%;padding:15px;background:var(--green);border:none;border-radius:var(--r);color:#000;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em;}
 .btn-share:hover{background:#08e060;transform:translateY(-1px);}
@@ -145,8 +174,7 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .btn-cj{width:100%;padding:11px;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--txm);font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn-cj:hover{border-color:var(--bdh);color:var(--tx);}
 
-/* Toast */
-.toast{position:fixed;bottom:118px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:9px 18px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:130px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:9px 18px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;max-width:calc(100vw - 40px);text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{border-color:rgba(6,199,85,.5);color:var(--green);}
 .toast.err{border-color:rgba(255,77,77,.5);color:var(--red);}
@@ -169,28 +197,35 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
   </div>
 </header>
 
-<!-- LIFF Banner -->
 <div class="banner" id="banner">
   <div class="banner-hdr" onclick="toggleBanner()">
-    <div class="banner-title">⚙️ <span id="bannerTitle">設定 LIFF ID（必填才能分享）</span></div>
+    <div class="banner-title">⚙️ <span id="bannerTitle">設定 LIFF ID 與 Cloudinary</span></div>
     <span class="banner-arrow open" id="bannerArrow">▼</span>
   </div>
   <div class="banner-body open" id="bannerBody">
     <div class="hint">
-      需要一個免費的 <strong>LINE LIFF App ID</strong> 才能從個人帳號分享。<br>
-      👉 <a href="https://developers.line.biz/console/" target="_blank">LINE Developers Console</a> → Provider → Create LIFF App → 複製 LIFF ID<br>
-      Endpoint URL 填入這個 HTML 檔案的公開網址（需 HTTPS，可用 GitHub Pages）。
+      需要 <strong>LINE LIFF App ID</strong> 才能用個人帳號分享。<br>
+      👉 <a href="https://developers.line.biz/console/" target="_blank">LINE Developers Console</a> → 建立 LINE Login Channel → Create LIFF App → 開啟 shareTargetPicker
     </div>
     <div class="liff-row">
-      <input class="liff-inp" id="liffInp" type="text" placeholder="1234567890-AbCdEfGh" oninput="onLiffChange()">
+      <input class="inp-base" id="liffInp" type="text" placeholder="1234567890-AbCdEfGh" oninput="onLiffChange()">
       <button class="btn-conn" onclick="initLiff()">連線</button>
     </div>
-    <div class="ok-msg" id="okMsg">✓ LIFF 已連線，可以分享了！</div>
+    <div class="ok-msg" id="okMsg">✓ LIFF 已連線！</div>
+    <div class="cld-section" style="display:none">
+      <div class="cld-row">
+        <input class="cld-inp" id="cldName" type="text" value="dgizk0jkb">
+        <input class="cld-inp" id="cldPreset" type="text" value="image_uploader">
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="wrap">
   <div class="sp"></div>
+
+  <p class="slabel">快速範本</p>
+  <div class="tpl-scroll" id="tplRow"></div>
 
   <p class="slabel">卡片預覽</p>
   <div class="strip-acts">
@@ -206,13 +241,22 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
   <div class="editor">
     <div class="etabs">
       <div class="etab act" onclick="switchTab('c',this)">圖文內容</div>
-      <div class="etab" onclick="switchTab('j',this)">JSON 預覽</div>
-      <div class="etab" onclick="switchTab('h',this)">發送教學</div>
+      <div class="etab" onclick="switchTab('b',this)">按鈕</div>
+      <div class="etab" onclick="switchTab('j',this)">JSON</div>
+      <div class="etab" onclick="switchTab('h',this)">教學</div>
     </div>
     <div class="ebody">
 
-      <!-- Content -->
       <div id="tc">
+        <div class="field">
+          <div class="flabel">圖片比例</div>
+          <div class="ratio-tog">
+            <button class="rtab act" id="r2013" onclick="setRatio('20:13',this)">🖼 寬版</button>
+            <button class="rtab" id="r11" onclick="setRatio('1:1',this)">⬛ 1:1</button>
+            <button class="rtab" id="r34" onclick="setRatio('3:4',this)">📱 3:4</button>
+            <button class="rtab" id="r916" onclick="setRatio('9:16',this)">📲 9:16</button>
+          </div>
+        </div>
         <div class="field">
           <div class="flabel">圖片</div>
           <div class="itog">
@@ -227,58 +271,66 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
               <input type="file" id="fi" accept="image/jpeg,image/png,image/webp,image/gif" onchange="loadFile(this.files[0])">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
               <p>點擊或拖曳圖片</p>
-              <small>JPG · PNG · WebP，最大 5MB</small>
+              <small>JPG · PNG · WebP，最大 10MB</small>
             </div>
-            <div class="iprev" id="upPrev" style="display:none">
-              <img id="upImg" src="" alt="">
-              <button class="iprev-rm" onclick="rmUpload()">×</button>
+            <div class="up-prog" id="upProg"><div class="spin"></div><span id="upMsg">上傳至 Cloudinary 中…</span></div>
+            <div class="crop-outer" id="cropOuter" style="display:none">
+              <div class="crop-inner" id="cropInner">
+                <img id="cropImg" src="" alt="" draggable="false">
+                <button class="crop-del" onclick="rmUpload()">×</button>
+              </div>
+              <p class="crop-hint">👆 左右拖曳調整圖片位置</p>
             </div>
-            <p class="rnote">⚠️ 上傳圖片會轉成 base64，<strong>LINE 可能無法顯示</strong>。建議改用圖片網址。</p>
           </div>
           <div id="mUrl" style="display:none">
             <input class="fi" type="url" id="imgUrl" placeholder="https://example.com/photo.jpg" oninput="onUrlChange()">
             <div class="uprev" id="urlPrev"><img id="urlImg" src="" alt="" onerror="this.parentElement.style.display='none'"></div>
-            <p class="rnote">建議使用公開 HTTPS 圖片連結，比例 20:13 或 1:1 最佳。</p>
+            <p class="rnote" style="margin-top:5px;">建議使用公開 HTTPS 圖片連結</p>
           </div>
         </div>
-
         <div class="field">
-          <div class="flabel">
-            標題 <span class="req">*</span>
-            <span class="cc" id="cc">0 / 40</span>
-          </div>
+          <div class="flabel">標題 <span class="req">*</span><span class="cc" id="cc">0 / 40</span></div>
           <input class="fi" type="text" id="fTitle" placeholder="輸入卡片標題（最多 40 字）" maxlength="40" oninput="onField()">
         </div>
-
         <div class="field">
-          <div class="flabel">點擊連結 <span class="req">*</span></div>
-          <input class="fi" type="url" id="fUrl" placeholder="https://..." oninput="onField()">
-          <p class="rnote" style="margin-top:5px">點擊卡片後跳轉的網址</p>
+          <div class="flabel">說明文字</div>
+          <input class="fi" type="text" id="fBody" placeholder="一行簡短說明（選填）" maxlength="80" oninput="onField()">
+        </div>
+        <div class="field">
+          <div class="flabel">卡片整體連結</div>
+          <input class="fi" type="url" id="fUrl" placeholder="https://（點擊卡片跳轉）" oninput="onField()">
         </div>
       </div>
 
-      <!-- JSON -->
+      <div id="tb" style="display:none">
+        <div class="btns-box">
+          <div class="btns-hdr">
+            <span class="btns-hdr-tx">按鈕列表（最多 4 個）</span>
+            <button class="btn-ab" id="btnAB" onclick="addBtn()">＋ 新增按鈕</button>
+          </div>
+          <div id="btnList"><div class="btns-empty">尚未新增按鈕</div></div>
+        </div>
+        <p class="rnote" style="margin-top:10px;">按鈕顯示在卡片底部，每個按鈕可設定文字與跳轉連結。</p>
+      </div>
+
       <div id="tj" style="display:none"><pre class="jsonbox" id="jbox"></pre></div>
 
-      <!-- Howto -->
       <div id="th" style="display:none">
         <div class="hsteps">
-          <div class="hs"><div class="hs-n">1</div><div class="hs-t">去 <a href="https://developers.line.biz/console/" target="_blank"><strong>LINE Developers Console</strong></a> 用你的 LINE 帳號登入</div></div>
-          <div class="hs"><div class="hs-n">2</div><div class="hs-t">建立 <strong>Provider</strong>（任意名稱）→ 點 <strong>「Create a LIFF app」</strong> → Size 選 <code>Full</code>，打開 <code>shareTargetPicker</code></div></div>
-          <div class="hs"><div class="hs-n">3</div><div class="hs-t"><strong>Endpoint URL</strong> 填入這個 HTML 的公開網址（可用 <a href="https://pages.github.com" target="_blank">GitHub Pages</a> 或 <a href="https://netlify.com" target="_blank">Netlify</a> 免費部署）</div></div>
-          <div class="hs"><div class="hs-n">4</div><div class="hs-t">建立後複製 <strong>LIFF ID</strong>（格式：<code>1234567890-AbCdEfGh</code>）→ 貼到上方欄位 → 按「連線」</div></div>
-          <div class="hs"><div class="hs-n">5</div><div class="hs-t">回到編輯頁，填好所有卡片 → 按下方 <strong>「分享給好友」</strong></div></div>
-          <div class="hs"><div class="hs-n">6</div><div class="hs-t">LINE 彈出好友選擇器 → 選人 → 送出 ✓ 對方收到的是<strong>你個人帳號</strong>發的可滑動卡片</div></div>
-          <div class="hs"><div class="hs-n w">!</div><div class="hs-t">此頁面必須<strong>在 LINE App 內部瀏覽器</strong>開啟才能呼叫分享。普通瀏覽器請改用下方「複製 JSON」備用。</div></div>
+          <div class="hs"><div class="hs-n">1</div><div class="hs-t">去 <a href="https://developers.line.biz/console/" target="_blank"><strong>LINE Developers Console</strong></a> → 建立 <strong>LINE Login Channel</strong></div></div>
+          <div class="hs"><div class="hs-n">2</div><div class="hs-t">在 Channel 內建立 <strong>LIFF App</strong>：Size 選 <code>Full</code>，開啟 <strong>shareTargetPicker</strong> 並同意條款</div></div>
+          <div class="hs"><div class="hs-n">3</div><div class="hs-t"><strong>Endpoint URL</strong> 填入這個 HTML 的公開網址（可用 <a href="https://pages.github.com" target="_blank">GitHub Pages</a>），複製 <strong>LIFF ID</strong> 貼到上方欄位</div></div>
+          <div class="hs"><div class="hs-n">4</div><div class="hs-t">去 <a href="https://cloudinary.com" target="_blank"><strong>Cloudinary</strong></a> 免費註冊 → Settings → Upload → Add upload preset → Signing Mode 選 <strong>Unsigned</strong> → 填入上方欄位</div></div>
+          <div class="hs"><div class="hs-n">5</div><div class="hs-t">在 <strong>LINE App 內</strong>開啟 <code>liff.line.me/你的LIFF_ID</code> → 填好卡片 → 按「分享給好友」</div></div>
+          <div class="hs"><div class="hs-n w">!</div><div class="hs-t">必須在 <strong>LINE 內建瀏覽器</strong>開啟才能呼叫分享。電腦瀏覽器請改用「複製 JSON」。</div></div>
         </div>
       </div>
 
     </div>
   </div>
-  <div style="height:120px"></div>
+  <div style="height:140px"></div>
 </div>
 
-<!-- Bottom -->
 <div class="bot">
   <button class="btn-share" id="btnShare" onclick="doShare()">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -289,73 +341,118 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
     複製 Flex JSON（備用）
   </button>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ── State ────────────────────────────────────────────────
-const MAX = 5
-let cards = [mkCard()]
-let idx = 0
-let tab = 'c'
-let liffOk = false
-let bOpen = true
+// ── Constants ──────────────────────────────────────────────
+const MAX_CARDS = 5, MAX_BTNS = 4
+const RATIOS = {
+  '20:13':{ css:'62.5%', stripH:78 },
+  '1:1':  { css:'100%',  stripH:110 },
+  '3:4':  { css:'133%',  stripH:140 },
+  '9:16': { css:'177%',  stripH:170 }
+}
 
-function mkCard(){ return {title:'',url:'',dataUrl:'',imgUrl:'',mode:'up'} }
+// ── State ──────────────────────────────────────────────────
+let cards = [mkCard()], idx = 0, activeTab = 'c', liffOk = false, bOpen = true
+let dragStartX = 0, dragStartCrop = 50, dragging = false
 
-// ── Boot ──────────────────────────────────────────────────
+function mkCard(){
+  return { title:'', body:'', url:'', dataUrl:'', cloudUrl:'', imgUrl:'',
+           mode:'up', ratio:'20:13', cropX:50, btns:[] }
+}
+
+// ── Boot ───────────────────────────────────────────────────
 ;(()=>{
-  const s = localStorage.getItem('liff_id')
-  if(s){ document.getElementById('liffInp').value = s; autoInit(s) }
+  const lid = localStorage.getItem('liff_id')
+  if(lid){ document.getElementById('liffInp').value=lid; autoInit(lid) }
+  document.getElementById('cldName').value='dgizk0jkb'
+  document.getElementById('cldPreset').value='image_uploader'
   renderAll()
 })()
 
-// ── LIFF ──────────────────────────────────────────────────
-function onLiffChange(){ liffOk=false; dot(''); document.getElementById('okMsg').classList.remove('show') }
+// ── Cloudinary ─────────────────────────────────────────────
+function saveCld(){
+  localStorage.setItem('cld_name', document.getElementById('cldName').value.trim())
+  localStorage.setItem('cld_preset', document.getElementById('cldPreset').value.trim())
+}
+async function uploadToCloudinary(dataUrl){
+  const cn = document.getElementById('cldName').value.trim() || 'dgizk0jkb'
+  const cp = document.getElementById('cldPreset').value.trim() || 'image_uploader'
+  const blob = await (await fetch(dataUrl)).blob()
+  const fd = new FormData()
+  fd.append('file', blob); fd.append('upload_preset', cp)
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cn}/image/upload`,{method:'POST',body:fd})
+  if(!res.ok){ const err=await res.json(); throw new Error(err.error?.message||'Upload failed') }
+  return (await res.json()).secure_url
+}
 
+// ── LIFF ───────────────────────────────────────────────────
+function onLiffChange(){ liffOk=false; dot(''); document.getElementById('okMsg').classList.remove('show') }
 async function autoInit(id){
   try{
     await liff.init({liffId:id})
     if(!liff.isLoggedIn()){ liff.login(); return }
     setReady(id)
-  }catch(e){ console.warn('autoInit failed',e) }
+  }catch(e){}
 }
-
 async function initLiff(){
-  const id = document.getElementById('liffInp').value.trim()
+  const id=document.getElementById('liffInp').value.trim()
   if(!id){ toast('請輸入 LIFF ID','err'); return }
-  dot('')
-  toast('連線中…','')
-  try{
-    await liff.init({liffId:id})
-    setReady(id)
-    toast('✓ LIFF 連線成功','ok')
-  }catch(e){
-    dot('err')
-    toast('連線失敗：'+(e.message||'LIFF ID 可能有誤'),'err')
-  }
+  dot(''); toast('連線中…','')
+  try{ await liff.init({liffId:id}); setReady(id); toast('✓ LIFF 連線成功','ok') }
+  catch(e){ dot('err'); toast('連線失敗：'+(e.message||'LIFF ID 可能有誤'),'err') }
 }
-
 function setReady(id){
-  liffOk=true
-  localStorage.setItem('liff_id',id)
-  dot('ok')
+  liffOk=true; localStorage.setItem('liff_id',id); dot('ok')
   document.getElementById('okMsg').classList.add('show')
   document.getElementById('bannerTitle').textContent='LIFF 已連線 ✓'
   if(bOpen) toggleBanner()
 }
-
 function dot(s){ document.getElementById('liffDot').className='dot'+(s?' '+s:'') }
-
 function toggleBanner(){
   bOpen=!bOpen
   document.getElementById('bannerBody').classList.toggle('open',bOpen)
   document.getElementById('bannerArrow').classList.toggle('open',bOpen)
 }
 
-// ── Cards ─────────────────────────────────────────────────
+// ── Templates ──────────────────────────────────────────────
+const TEMPLATES = [
+  { name:'市場週報', icon:'📊', desc:'每週市場資訊', cards:[
+    {title:'本週台股分析',body:'大盤指數與主力類股',url:'https://www.twse.com.tw',btns:[{label:'查看完整報告',url:'https://www.twse.com.tw'}]},
+    {title:'美股重點觀察',body:'Fed 動向與科技股',url:'https://finance.yahoo.com',btns:[{label:'Yahoo 財經',url:'https://finance.yahoo.com'}]},
+  ]},
+  { name:'保險觀念', icon:'🛡️', desc:'保險知識分享', cards:[
+    {title:'為什麼需要定期壽險？',body:'保障家人最實惠的方式',url:'https://www.lia-roc.org.tw',btns:[{label:'了解更多',url:'https://www.lia-roc.org.tw'},{label:'立即諮詢',url:'https://line.me'}]},
+    {title:'醫療險 vs 實支實付',body:'兩種保障的差異與選擇',url:'https://www.lia-roc.org.tw',btns:[{label:'比較方案',url:'https://www.lia-roc.org.tw'}]},
+  ]},
+  { name:'新聞解讀', icon:'📰', desc:'重要新聞解析', cards:[
+    {title:'今日財經重點新聞',body:'三分鐘掌握市場動態',url:'https://money.udn.com',btns:[{label:'閱讀全文',url:'https://money.udn.com'},{label:'LINE 討論',url:'https://line.me'}]},
+    {title:'政策變動對保險的影響',body:'最新法規解讀與建議',url:'https://www.fsc.gov.tw',btns:[{label:'金管會公告',url:'https://www.fsc.gov.tw'}]},
+  ]},
+  { name:'活動通知', icon:'📅', desc:'講座說明會邀請', cards:[
+    {title:'免費線上理財說明會',body:'週六 14:00 線上直播',url:'https://line.me',btns:[{label:'立即報名',url:'https://line.me'},{label:'加好友詢問',url:'https://line.me'}]},
+    {title:'一對一保障檢視服務',body:'免費分析現有保單',url:'https://line.me',btns:[{label:'預約時段',url:'https://line.me'}]},
+  ]},
+]
+function renderTemplates(){
+  document.getElementById('tplRow').innerHTML=TEMPLATES.map((t,i)=>
+    `<div class="tpl-card" onclick="applyTemplate(${i})">
+      <div class="tpl-ic">${t.icon}</div>
+      <div class="tpl-name">${t.name}</div>
+      <div class="tpl-desc">${t.desc}</div>
+    </div>`
+  ).join('')
+}
+function applyTemplate(i){
+  const tpl=TEMPLATES[i]
+  cards=tpl.cards.map(c=>({...mkCard(),...c,btns:(c.btns||[]).map(b=>({...b}))}))
+  idx=0; renderAll(); toast('已套用：'+tpl.name,'ok')
+}
+
+// ── Cards ──────────────────────────────────────────────────
 function addCard(){
-  if(cards.length>=MAX) return
+  if(cards.length>=MAX_CARDS) return
   save(); cards.push(mkCard()); idx=cards.length-1
   renderAll(); toast('已新增 '+cn(idx),'ok')
 }
@@ -364,122 +461,228 @@ function delCard(){
   cards.splice(idx,1); if(idx>=cards.length) idx=cards.length-1
   renderAll(); toast('已刪除','')
 }
-function selCard(i){ save(); idx=i; load(); renderStrip(); updLabel(); if(tab==='j') refreshJson() }
+function selCard(i){ save(); idx=i; load(); renderStrip(); updLabel(); if(activeTab==='j') refreshJson() }
 
 // ── Save / Load ────────────────────────────────────────────
 function save(){
   const c=cards[idx]
   c.title=document.getElementById('fTitle').value
-  c.url=document.getElementById('fUrl').value
+  c.body =document.getElementById('fBody').value
+  c.url  =document.getElementById('fUrl').value
   c.imgUrl=document.getElementById('imgUrl').value
 }
 function load(){
   const c=cards[idx]
-  document.getElementById('fTitle').value=c.title
-  document.getElementById('fUrl').value=c.url
+  document.getElementById('fTitle').value=c.title||''
+  document.getElementById('fBody').value =c.body ||''
+  document.getElementById('fUrl').value  =c.url  ||''
   document.getElementById('imgUrl').value=c.imgUrl||''
-  updCC()
-  setModeUI(c.mode||'up')
-  // upload preview
+  updCC(); setModeUI(c.mode||'up'); setRatioUI(c.ratio||'20:13')
+  // Upload preview
   if(c.mode==='up'){
-    if(c.dataUrl){
-      document.getElementById('upImg').src=c.dataUrl
-      document.getElementById('upPrev').style.display='block'
-      document.getElementById('upz').style.display='none'
-    }else{
-      document.getElementById('upPrev').style.display='none'
-      document.getElementById('upz').style.display='block'
-    }
+    const src=c.cloudUrl||c.dataUrl
+    if(src){ showCrop(src, c.cropX||50); document.getElementById('upz').style.display='none' }
+    else { document.getElementById('cropOuter').style.display='none'; document.getElementById('upz').style.display='block' }
   }
-  // url preview
+  // URL preview
   if(c.imgUrl){
-    const img=document.getElementById('urlImg')
-    img.src=c.imgUrl
+    document.getElementById('urlImg').src=c.imgUrl
     document.getElementById('urlPrev').style.display='block'
-  }else{ document.getElementById('urlPrev').style.display='none' }
+  } else { document.getElementById('urlPrev').style.display='none' }
+  renderBtnList()
 }
 
-// ── Field events ──────────────────────────────────────────
-function onField(){ save(); renderStrip(); updCC(); if(tab==='j') refreshJson() }
+// ── Fields ─────────────────────────────────────────────────
+function onField(){ save(); renderStrip(); updCC(); if(activeTab==='j') refreshJson() }
 function updCC(){
   const n=document.getElementById('fTitle').value.length
   const el=document.getElementById('cc')
   el.textContent=n+' / 40'; el.classList.toggle('warn',n>=38)
 }
 
-// ── Image ─────────────────────────────────────────────────
-function setImg(m){ save(); cards[idx].mode=m; setModeUI(m); if(tab==='j') refreshJson() }
+// ── Ratio ──────────────────────────────────────────────────
+function setRatio(r,btn){ save(); cards[idx].ratio=r; setRatioUI(r); renderStrip(); if(activeTab==='j') refreshJson() }
+function setRatioUI(r){
+  document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('act'))
+  const map={'20:13':'r2013','1:1':'r11','3:4':'r34','9:16':'r916'}
+  const el=document.getElementById(map[r]||'r2013'); if(el) el.classList.add('act')
+  // Also update crop container aspect ratio
+  updateCropRatio(r)
+}
+function updateCropRatio(r){
+  const inner=document.getElementById('cropInner')
+  if(!inner) return
+  const ratio=RATIOS[r]||RATIOS['20:13']
+  inner.style.paddingBottom=ratio.css
+  inner.style.position='relative'
+  inner.style.height='0'
+  const img=document.getElementById('cropImg')
+  img.style.position='absolute'
+  img.style.top='0'
+  img.style.left='0'
+  img.style.width='100%'
+  img.style.height='100%'
+}
+
+// ── Image ──────────────────────────────────────────────────
+function setImg(m){ save(); cards[idx].mode=m; setModeUI(m); if(activeTab==='j') refreshJson() }
 function setModeUI(m){
   document.getElementById('mUp').style.display=m==='up'?'block':'none'
   document.getElementById('mUrl').style.display=m==='url'?'block':'none'
   document.getElementById('itUp').classList.toggle('act',m==='up')
   document.getElementById('itUrl').classList.toggle('act',m==='url')
 }
-
 function loadFile(f){
   if(!f) return
   if(!f.type.startsWith('image/')){ toast('請選擇圖片','err'); return }
-  if(f.size>5*1024*1024){ toast('圖片需小於 5MB','err'); return }
-  const r=new FileReader()
-  r.onload=e=>{
-    cards[idx].dataUrl=e.target.result
-    document.getElementById('upImg').src=e.target.result
-    document.getElementById('upPrev').style.display='block'
+  if(f.size>10*1024*1024){ toast('圖片需小於 10MB','err'); return }
+  const reader=new FileReader()
+  reader.onload=async e=>{
+    const dataUrl=e.target.result
+    cards[idx].dataUrl=dataUrl; cards[idx].cloudUrl=''; cards[idx].cropX=50
+    showCrop(dataUrl,50)
     document.getElementById('upz').style.display='none'
-    renderStrip(); if(tab==='j') refreshJson()
+    renderStrip(); if(activeTab==='j') refreshJson()
+    // Auto-upload
+    const cn=document.getElementById('cldName').value.trim()
+    const cp=document.getElementById('cldPreset').value.trim()
+    if(cn&&cp){
+      document.getElementById('upProg').classList.add('show')
+      try{
+        const url=await uploadToCloudinary(dataUrl)
+        if(url){ cards[idx].cloudUrl=url; toast('✓ 圖片已上傳','ok'); if(activeTab==='j') refreshJson() }
+      }catch(err){ toast('Cloudinary 上傳失敗：'+err.message,'err') }
+      finally{ document.getElementById('upProg').classList.remove('show') }
+    }
   }
-  r.readAsDataURL(f)
+  reader.readAsDataURL(f)
 }
 function dropFile(e){
   e.preventDefault(); document.getElementById('upz').classList.remove('drag')
   const f=e.dataTransfer.files[0]; if(f) loadFile(f)
 }
 function rmUpload(){
-  cards[idx].dataUrl=''
-  document.getElementById('upPrev').style.display='none'
+  cards[idx].dataUrl=''; cards[idx].cloudUrl=''; cards[idx].cropX=50
+  document.getElementById('cropOuter').style.display='none'
   document.getElementById('upz').style.display='block'
   document.getElementById('fi').value=''
-  renderStrip()
+  renderStrip(); if(activeTab==='j') refreshJson()
 }
 function onUrlChange(){
   const url=document.getElementById('imgUrl').value.trim()
   cards[idx].imgUrl=url
-  const prev=document.getElementById('urlPrev')
-  const img=document.getElementById('urlImg')
+  const prev=document.getElementById('urlPrev'), img=document.getElementById('urlImg')
   if(url.startsWith('http')){
     img.src=url
-    img.onload=()=>{ prev.style.display='block' }
-    img.onerror=()=>{ prev.style.display='none' }
-  }else{ prev.style.display='none' }
-  renderStrip(); if(tab==='j') refreshJson()
+    img.onload=()=>prev.style.display='block'
+    img.onerror=()=>prev.style.display='none'
+  } else { prev.style.display='none' }
+  renderStrip(); if(activeTab==='j') refreshJson()
 }
 
-// ── Tabs ──────────────────────────────────────────────────
+// ── Crop / Pan ─────────────────────────────────────────────
+function showCrop(src, cropX){
+  const outer=document.getElementById('cropOuter')
+  const inner=document.getElementById('cropInner')
+  const img=document.getElementById('cropImg')
+  outer.style.display='block'
+  // Set ratio-based height
+  const r=cards[idx].ratio||'20:13'
+  updateCropRatio(r)
+  img.src=src
+  applyCrop(cropX)
+  initCropDrag()
+}
+function applyCrop(pct){
+  const img=document.getElementById('cropImg')
+  img.style.objectFit='cover'
+  img.style.objectPosition=`${pct}% center`
+}
+function initCropDrag(){
+  const inner=document.getElementById('cropInner')
+  inner.onmousedown=e=>startDrag(e.clientX)
+  inner.ontouchstart=e=>{ e.preventDefault(); startDrag(e.touches[0].clientX) }
+}
+function startDrag(startX){
+  dragging=true; dragStartX=startX; dragStartCrop=cards[idx].cropX||50
+  const move=e=>{
+    if(!dragging) return
+    const x=e.touches?e.touches[0].clientX:e.clientX
+    const inner=document.getElementById('cropInner')
+    const w=inner.clientWidth||300
+    const diff=(x-dragStartX)/w*100
+    const newX=Math.max(0,Math.min(100,dragStartCrop-diff))
+    cards[idx].cropX=newX
+    applyCrop(newX)
+    if(activeTab==='j') refreshJson()
+  }
+  const stop=()=>{
+    dragging=false
+    document.removeEventListener('mousemove',move)
+    document.removeEventListener('mouseup',stop)
+    document.removeEventListener('touchmove',move)
+    document.removeEventListener('touchend',stop)
+  }
+  document.addEventListener('mousemove',move)
+  document.addEventListener('mouseup',stop)
+  document.addEventListener('touchmove',move,{passive:false})
+  document.addEventListener('touchend',stop)
+}
+
+// ── Tabs ───────────────────────────────────────────────────
 function switchTab(t,btn){
-  save(); tab=t
-  ;['c','j','h'].forEach(x=>{ document.getElementById('t'+x).style.display=x===t?'block':'none' })
+  save(); activeTab=t
+  ;['c','b','j','h'].forEach(x=>{ document.getElementById('t'+x).style.display=x===t?'block':'none' })
   document.querySelectorAll('.etab').forEach(b=>b.classList.remove('act'))
   btn.classList.add('act')
   if(t==='j') refreshJson()
+  if(t==='b') renderBtnList()
 }
 
-// ── Render ────────────────────────────────────────────────
+// ── Buttons ────────────────────────────────────────────────
+function renderBtnList(){
+  const c=cards[idx], container=document.getElementById('btnList')
+  document.getElementById('btnAB').disabled=(c.btns||[]).length>=MAX_BTNS
+  if(!c.btns||c.btns.length===0){
+    container.innerHTML='<div class="btns-empty">尚未新增按鈕</div>'; return
+  }
+  container.innerHTML=`<div class="btn-list">${c.btns.map((b,i)=>`
+    <div class="btn-row">
+      <div class="btn-inputs">
+        <input class="fi-s" type="text" placeholder="按鈕文字（最多 20 字）" maxlength="20" value="${esc(b.label)}" oninput="updBtn(${i},'label',this.value)">
+        <input class="fi-s" type="url" placeholder="https://…" value="${esc(b.url)}" oninput="updBtn(${i},'url',this.value)">
+      </div>
+      <button class="btn-rm" onclick="rmBtn(${i})">×</button>
+    </div>
+  `).join('')}</div>`
+}
+function addBtn(){
+  const c=cards[idx]; if(!c.btns) c.btns=[]
+  if(c.btns.length>=MAX_BTNS){ toast('最多 '+MAX_BTNS+' 個按鈕','warn'); return }
+  c.btns.push({label:'',url:''}); renderBtnList(); if(activeTab==='j') refreshJson()
+}
+function rmBtn(i){ cards[idx].btns.splice(i,1); renderBtnList(); if(activeTab==='j') refreshJson() }
+function updBtn(i,f,v){ cards[idx].btns[i][f]=v; if(activeTab==='j') refreshJson() }
+function esc(s){ return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;') }
+
+// ── Render ─────────────────────────────────────────────────
 function renderAll(){
   renderStrip(); load(); updLabel()
   document.getElementById('cntNum').textContent=cards.length
-  document.getElementById('btnAdd').disabled=cards.length>=MAX
+  document.getElementById('btnAdd').disabled=cards.length>=MAX_CARDS
   document.getElementById('btnDel').disabled=cards.length<=1
 }
 function renderStrip(){
   const strip=document.getElementById('strip')
   strip.innerHTML=cards.map((c,i)=>{
-    const src=c.mode==='up'?c.dataUrl:c.imgUrl
+    const src=c.mode==='up'?(c.cloudUrl||c.dataUrl):c.imgUrl
+    const r=RATIOS[c.ratio||'20:13']||RATIOS['20:13']
     let host=''
-    if(c.url){try{host=new URL(c.url).hostname}catch{host=c.url.slice(0,20)}}
+    if(c.url){ try{ host=new URL(c.url).hostname }catch{ host=c.url.slice(0,20) } }
     return `<div class="pc ${i===idx?'act':''}" onclick="selCard(${i})">
-      <div class="pc-img">
+      <div class="pc-img" style="height:${r.stripH}px">
         <div class="pc-n">${cn(i)}</div>
-        ${src?`<img src="${src}" alt="" onerror="this.style.display='none'">`:`<div class="pc-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
+        ${src?`<img src="${src}" alt="" style="object-position:${c.cropX||50}% center" onerror="this.style.display='none'">`:`<div class="pc-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
       </div>
       <div class="pc-info">
         <div class="pc-title">${c.title||'（無標題）'}</div>
@@ -495,88 +698,93 @@ function renderStrip(){
 function updLabel(){ document.getElementById('edLabel').textContent=cn(idx)+' ' }
 function cn(i){ return['①','②','③','④','⑤'][i]||String(i+1) }
 
-// ── Flex JSON ─────────────────────────────────────────────
+// ── Flex JSON ──────────────────────────────────────────────
 function buildFlex(){
   save()
   const bubbles=cards.map(c=>{
-    const src=c.mode==='up'?c.dataUrl:(c.imgUrl||'')
-    const action=c.url?{type:'uri',label:c.title||'開啟連結',uri:c.url}:undefined
+    const ratio=c.ratio||'20:13'
+    const imgSrc=c.mode==='up'?(c.cloudUrl||c.dataUrl||''):(c.imgUrl||'')
+    const cardAction=c.url?{type:'uri',label:c.title||'查看',uri:c.url}:undefined
     const bubble={type:'bubble',size:'kilo'}
-    if(src){
-      bubble.hero={type:'image',url:src,size:'full',aspectRatio:'20:13',aspectMode:'cover',action}
+
+    if(imgSrc){
+      const hero={type:'image',url:imgSrc,size:'full',aspectRatio:ratio,aspectMode:'cover'}
+      // Approximate crop with gravity
+      const cx=c.cropX||50
+      if(cx<35) hero.gravity='left'
+      else if(cx>65) hero.gravity='right'
+      if(cardAction) hero.action=cardAction
+      bubble.hero=hero
     }
-    if(c.title){
-      bubble.body={type:'box',layout:'vertical',contents:[{type:'text',text:c.title.slice(0,40),weight:'bold',size:'md',wrap:true,color:'#111111'}],paddingAll:'md',action}
-    }
-    if(!src&&!c.title){
-      bubble.body={type:'box',layout:'vertical',contents:[{type:'text',text:'（空白卡片）',color:'#aaaaaa',size:'sm'}],paddingAll:'md'}
+
+    const bodyContents=[]
+    if(c.title) bodyContents.push({type:'text',text:c.title.slice(0,40),weight:'bold',size:'sm',wrap:true,color:'#111111'})
+    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,80),size:'xs',wrap:true,color:'#555555',margin:c.title?'sm':undefined})
+    if(bodyContents.length>0) bubble.body={type:'box',layout:'vertical',contents:bodyContents,paddingAll:'md',action:cardAction}
+
+    const validBtns=(c.btns||[]).filter(b=>b.label&&b.url)
+    if(validBtns.length>0){
+      bubble.footer={type:'box',layout:'vertical',spacing:'xs',paddingAll:'sm',
+        contents:validBtns.map(b=>({type:'button',action:{type:'uri',label:b.label.slice(0,20),uri:b.url},style:'primary',color:'#06C755',height:'sm'}))}
     }
     return bubble
   })
   return {type:'flex',altText:cards[0]?.title||'查看卡片訊息',contents:{type:'carousel',contents:bubbles}}
 }
-
 function refreshJson(){ document.getElementById('jbox').textContent=JSON.stringify(buildFlex(),null,2) }
 
-// ── Share ─────────────────────────────────────────────────
+// ── Share ──────────────────────────────────────────────────
 async function doShare(){
   save()
-  const hasContent=cards.some(c=>c.title||c.url||c.dataUrl||c.imgUrl)
+  const hasContent=cards.some(c=>c.title||c.url||c.dataUrl||c.cloudUrl||c.imgUrl)
   if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
 
-  if(!liffOk){
-    toast('請先填入 LIFF ID 並按「連線」','warn')
-    if(!bOpen) toggleBanner()
-    return
+  // Upload pending base64 images
+  const pending=cards.filter(c=>c.mode==='up'&&c.dataUrl&&!c.cloudUrl)
+  if(pending.length>0){
+    const cn=document.getElementById('cldName').value.trim()||'dgizk0jkb'
+    const cp=document.getElementById('cldPreset').value.trim()||'image_uploader'
+    setBtnShare('⏳ 上傳圖片中…',true)
+    try{
+      for(let i=0;i<cards.length;i++){
+        const card=cards[i]
+        if(card.mode==='up'&&card.dataUrl&&!card.cloudUrl){
+          toast(`上傳第 ${i+1} 張圖片…`,'')
+          card.cloudUrl=await uploadToCloudinary(card.dataUrl)||''
+        }
+      }
+    }catch(err){ toast('圖片上傳失敗：'+err.message,'err'); setBtnShare(); return }
+    setBtnShare()
   }
 
-  // 診斷資訊
-  const inClient = liff.isInClient()
-  const isLoggedIn = liff.isLoggedIn()
-  const apiOk = liff.isApiAvailable('shareTargetPicker')
-  console.log('[LIFF診斷] isInClient:', inClient, 'isLoggedIn:', isLoggedIn, 'shareTargetPicker可用:', apiOk)
+  if(!liffOk){ toast('請先填入 LIFF ID 並按「連線」','warn'); if(!bOpen) toggleBanner(); return }
+  if(!liff.isLoggedIn()){ liff.login(); return }
+  if(!liff.isApiAvailable('shareTargetPicker')){ toast('shareTargetPicker 未啟用，請在 LINE 內開啟此頁面','err'); return }
 
-  if(!isLoggedIn){
-    toast('請先登入 LINE 帳號','warn')
-    liff.login()
-    return
-  }
-
-  if(!apiOk){
-    // 顯示詳細原因
-    let reason = 'shareTargetPicker 未啟用'
-    if(!inClient) reason += '（目前在外部瀏覽器，請在 LINE 內開啟）'
-    toast(reason,'err')
-    return
-  }
-
-  const btn=document.getElementById('btnShare')
-  btn.disabled=true
-  btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 分享中...'
-
+  setBtnShare('⏳ 分享中…',true)
   try{
-    const flex = buildFlex()
-    const result=await liff.shareTargetPicker([flex],{isMultiple:true})
-    if(result){ toast('✓ 分享成功！','ok') }else{ toast('已取消分享','') }
-  }catch(e){
-    const msg = e.message || '未知錯誤'
-    toast('分享失敗：'+msg,'err')
-    // 顯示詳細錯誤在 console 方便除錯
-    console.error('[shareTargetPicker error]', e)
-  }finally{
-    btn.disabled=false
-    btn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> 分享給好友'
-  }
+    const result=await liff.shareTargetPicker([buildFlex()],{isMultiple:true})
+    if(result) toast('✓ 分享成功！','ok'); else toast('已取消分享','')
+  }catch(e){ toast('分享失敗：'+(e.message||'未知錯誤'),'err') }
+  finally{ setBtnShare() }
+}
+function setBtnShare(txt,disabled){
+  const btn=document.getElementById('btnShare')
+  btn.disabled=!!disabled
+  btn.innerHTML=txt||'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> 分享給好友'
 }
 
-// ── Copy JSON ─────────────────────────────────────────────
+// ── Copy ───────────────────────────────────────────────────
 function copyJson(){
   navigator.clipboard.writeText(JSON.stringify(buildFlex(),null,2))
     .then(()=>toast('✓ Flex JSON 已複製','ok'))
     .catch(()=>toast('複製失敗','err'))
 }
 
-// ── Toast ─────────────────────────────────────────────────
+// ── Init Templates ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{ renderTemplates() })
+
+// ── Toast ──────────────────────────────────────────────────
 let _tt
 function toast(msg,type){
   const el=document.getElementById('toast')
