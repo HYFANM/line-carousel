@@ -332,7 +332,7 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 </div>
 
 <div class="bot">
-  <button class="btn-share" id="btnShare" onclick="doShare()">
+  <button class="btn-share" id="btnShare" onclick="doUploadThenShare()">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     分享給好友
   </button>
@@ -781,7 +781,7 @@ function renderStrip(){
     return `<div class="pc ${i===idx?'act':''}" onclick="selCard(${i})">
       <div class="pc-img" style="height:${r.stripH}px">
         <div class="pc-n">${cn(i)}</div>
-        ${src?`<img src="${src}" alt="" style="object-position:${c.cropX||50}% center" onerror="this.style.display='none'">`:`<div class="pc-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
+        ${src?`<img src="${src}" alt="" crossorigin="anonymous" referrerpolicy="no-referrer" style="object-position:${c.cropX||50}% center" onerror="this.style.display='none'">`:`<div class="pc-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
       </div>
       <div class="pc-info">
         <div class="pc-title">${c.title||'（無標題）'}</div>
@@ -833,16 +833,14 @@ function buildFlex(){
 function refreshJson(){ document.getElementById('jbox').textContent=JSON.stringify(buildFlex(),null,2) }
 
 // ── Share ──────────────────────────────────────────────────
-async function doShare(){
+// 上傳按鈕（獨立）
+async function doUploadThenShare(){
   save()
   const hasContent=cards.some(c=>c.title||c.url||c.dataUrl||c.cloudUrl||c.imgUrl)
   if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
 
-  // Upload pending base64 images
   const pending=cards.filter(c=>c.mode==='up'&&c.dataUrl&&!c.cloudUrl)
   if(pending.length>0){
-    const cn=document.getElementById('cldName').value.trim()||'dgizk0jkb'
-    const cp=document.getElementById('cldPreset').value.trim()||'image_uploader'
     setBtnShare('⏳ 上傳圖片中…',true)
     try{
       for(let i=0;i<cards.length;i++){
@@ -852,20 +850,36 @@ async function doShare(){
           card.cloudUrl=await uploadToCloudinary(card.dataUrl)||''
         }
       }
-    }catch(err){ toast('圖片上傳失敗：'+err.message,'err'); setBtnShare(); return }
-    setBtnShare()
+      toast('✓ 圖片上傳完成，請再按一次「分享給好友」','ok')
+    }catch(err){ toast('圖片上傳失敗：'+err.message,'err') }
+    setBtnShare(); return  // 上傳完讓用戶再按一次，確保 shareTargetPicker 在直接點擊中觸發
   }
+
+  // 直接分享（無 pending 圖片）
+  doShare()
+}
+
+// shareTargetPicker 必須直接在點擊事件中呼叫（LINE 限制）
+function doShare(){
+  save()
+  const hasContent=cards.some(c=>c.title||c.url||c.dataUrl||c.cloudUrl||c.imgUrl)
+  if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
 
   if(!liffOk){ toast('請先填入 LIFF ID 並按「連線」','warn'); if(!bOpen) toggleBanner(); return }
   if(!liff.isLoggedIn()){ liff.login(); return }
   if(!liff.isApiAvailable('shareTargetPicker')){ toast('shareTargetPicker 未啟用，請在 LINE 內開啟此頁面','err'); return }
 
+  // 檢查還有沒有未上傳的 base64 圖片
+  const stillPending=cards.some(c=>c.mode==='up'&&c.dataUrl&&!c.cloudUrl)
+  if(stillPending){ toast('還有圖片未上傳，請先按「上傳圖片」','warn'); return }
+
   setBtnShare('⏳ 分享中…',true)
-  try{
-    const result=await liff.shareTargetPicker([buildFlex()],{isMultiple:true})
-    if(result) toast('✓ 分享成功！','ok'); else toast('已取消分享','')
-  }catch(e){ toast('分享失敗：'+(e.message||'未知錯誤'),'err') }
-  finally{ setBtnShare() }
+  liff.shareTargetPicker([buildFlex()],{isMultiple:true})
+    .then(result=>{
+      if(result) toast('✓ 分享成功！','ok'); else toast('已取消分享','')
+    })
+    .catch(e=>{ toast('分享失敗：'+(e.message||'未知錯誤'),'err') })
+    .finally(()=>{ setBtnShare() })
 }
 function setBtnShare(txt,disabled){
   const btn=document.getElementById('btnShare')
