@@ -180,6 +180,26 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .toast.err{border-color:rgba(255,77,77,.5);color:var(--red);}
 .toast.warn{border-color:rgba(245,166,35,.5);color:var(--amber);}
 .sp{height:18px;}
+
+/* Card Live Preview */
+.preview-wrap{margin-top:14px;}
+.preview-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txd);margin-bottom:8px;}
+.card-preview{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.4);max-width:240px;margin:0 auto;}
+.cprev-img{width:100%;background:#eee;position:relative;overflow:hidden;}
+.cprev-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.cprev-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0f0f0;}
+.cprev-img-ph svg{width:32px;height:32px;opacity:.2;}
+.cprev-body{padding:12px 14px 8px;}
+.cprev-title{font-size:14px;font-weight:700;color:#111;line-height:1.4;word-break:break-all;}
+.cprev-body-text{font-size:12px;color:#555;margin-top:4px;line-height:1.5;word-break:break-all;}
+.cprev-footer{padding:0 8px 10px;display:flex;flex-direction:column;gap:6px;}
+.cprev-btn{display:block;width:100%;padding:9px 12px;border-radius:8px;border:none;font-size:13px;font-weight:700;color:#fff;text-align:center;cursor:default;font-family:'Noto Sans TC',sans-serif;}
+
+/* Button color swatches */
+.color-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.swatch{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0;}
+.swatch:hover{transform:scale(1.15);}
+.swatch.act{border-color:#fff;transform:scale(1.1);}
 </style>
 </head>
 <body>
@@ -294,7 +314,7 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
         </div>
         <div class="field">
           <div class="flabel">說明文字</div>
-          <input class="fi" type="text" id="fBody" placeholder="一行簡短說明（選填）" maxlength="80" oninput="onField()">
+          <input class="fi" type="text" id="fBody" placeholder="說明文字（選填，最多 120 字）" maxlength="120" oninput="onField()"><div style="font-size:10px;color:var(--txd);margin-top:3px;text-align:right;" id="bcnt">0 / 120</div>
         </div>
         <div class="field">
           <div class="flabel">卡片整體連結</div>
@@ -310,7 +330,7 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
           </div>
           <div id="btnList"><div class="btns-empty">尚未新增按鈕</div></div>
         </div>
-        <p class="rnote" style="margin-top:10px;">按鈕顯示在卡片底部，每個按鈕可設定文字與跳轉連結。</p>
+        <p class="rnote" style="margin-top:10px;">每個按鈕可單獨設定顏色，點色票選擇。</p>
       </div>
 
       <div id="tj" style="display:none"><pre class="jsonbox" id="jbox"></pre></div>
@@ -328,6 +348,13 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 
     </div>
   </div>
+
+  <!-- Live Card Preview -->
+  <div class="preview-wrap">
+    <p class="preview-label">卡片預覽（實際效果）</p>
+    <div class="card-preview" id="cardPreview"></div>
+  </div>
+
   <div style="height:140px"></div>
 </div>
 
@@ -376,7 +403,7 @@ function saveCld(){
   localStorage.setItem('cld_name', document.getElementById('cldName').value.trim())
   localStorage.setItem('cld_preset', document.getElementById('cldPreset').value.trim())
 }
-async function uploadToCloudinary(dataUrl){
+async function uploadToCloudinary(dataUrl, cropX){
   const cn = document.getElementById('cldName').value.trim() || 'dgizk0jkb'
   const cp = document.getElementById('cldPreset').value.trim() || 'image_uploader'
   const blob = await (await fetch(dataUrl)).blob()
@@ -384,7 +411,18 @@ async function uploadToCloudinary(dataUrl){
   fd.append('file', blob); fd.append('upload_preset', cp)
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cn}/image/upload`,{method:'POST',body:fd})
   if(!res.ok){ const err=await res.json(); throw new Error(err.error?.message||'Upload failed') }
-  return (await res.json()).secure_url
+  const data = await res.json()
+  // Apply horizontal crop via Cloudinary URL transformation
+  // c_fill + x offset based on cropX percentage
+  const baseUrl = data.secure_url
+  const pct = cropX ?? 50
+  // Insert transformation: c_fill,w_800,g_auto (let Cloudinary pick best crop)
+  // For manual offset: replace /upload/ with /upload/c_fill,w_800,x_OFFSET/
+  // We use g_face or x_offset approach
+  const xNorm = Math.round((pct / 100) * data.width)
+  // Build cropped URL: c_fill,w_800,h_520,x_{offset},g_north (for landscape)
+  const transformed = baseUrl.replace('/upload/', `/upload/c_fill,w_800,x_${xNorm},g_north/`)
+  return transformed
 }
 
 // ── LIFF ───────────────────────────────────────────────────
@@ -545,7 +583,7 @@ function renderTemplates(){
 }
 function applyTemplate(i){
   const tpl=TEMPLATES[i]
-  cards=tpl.cards.map(c=>({...mkCard(),...c,btns:(c.btns||[]).map(b=>({...b}))}))
+  cards=tpl.cards.map(c=>({...mkCard(),...c,btns:(c.btns||[]).map((b,bi)=>({color:BTN_COLORS[bi%BTN_COLORS.length].hex,...b}))}))
   idx=0; renderAll(); toast('已套用：'+tpl.name,'ok')
 }
 
@@ -576,7 +614,7 @@ function load(){
   document.getElementById('fBody').value =c.body ||''
   document.getElementById('fUrl').value  =c.url  ||''
   document.getElementById('imgUrl').value=c.imgUrl||''
-  updCC(); setModeUI(c.mode||'up'); setRatioUI(c.ratio||'20:13')
+  updCC(); updBC(); setModeUI(c.mode||'up'); setRatioUI(c.ratio||'20:13')
   // Upload preview
   if(c.mode==='up'){
     const src=c.cloudUrl||c.dataUrl
@@ -592,15 +630,22 @@ function load(){
 }
 
 // ── Fields ─────────────────────────────────────────────────
-function onField(){ save(); renderStrip(); updCC(); if(activeTab==='j') refreshJson() }
+function onField(){ save(); renderStripNoScroll(); updCC(); updBC(); if(activeTab==='j') refreshJson(); renderCardPreview() }
 function updCC(){
   const n=document.getElementById('fTitle').value.length
   const el=document.getElementById('cc')
   el.textContent=n+' / 40'; el.classList.toggle('warn',n>=38)
 }
+function updBC(){
+  const el=document.getElementById('bcnt')
+  if(!el) return
+  const n=document.getElementById('fBody').value.length
+  el.textContent=n+' / 120'
+  el.style.color=n>=110?'var(--red)':'var(--txd)'
+}
 
 // ── Ratio ──────────────────────────────────────────────────
-function setRatio(r,btn){ save(); cards[idx].ratio=r; setRatioUI(r); renderStrip(); if(activeTab==='j') refreshJson() }
+function setRatio(r,btn){ save(); cards[idx].ratio=r; setRatioUI(r); renderStrip(); if(activeTab==='j') refreshJson(); renderCardPreview() }
 function setRatioUI(r){
   document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('act'))
   const map={'20:13':'r2013','1:1':'r11','3:4':'r34','9:16':'r916'}
@@ -648,8 +693,8 @@ function loadFile(f){
     if(cn&&cp){
       document.getElementById('upProg').classList.add('show')
       try{
-        const url=await uploadToCloudinary(dataUrl)
-        if(url){ cards[idx].cloudUrl=url; toast('✓ 圖片已上傳','ok'); if(activeTab==='j') refreshJson() }
+        const url=await uploadToCloudinary(dataUrl, cards[idx].cropX||50)
+        if(url){ cards[idx].cloudUrl=url; toast('✓ 圖片已上傳','ok'); if(activeTab==='j') refreshJson(); renderCardPreview() }
       }catch(err){ toast('Cloudinary 上傳失敗：'+err.message,'err') }
       finally{ document.getElementById('upProg').classList.remove('show') }
     }
@@ -676,7 +721,7 @@ function onUrlChange(){
     img.onload=()=>prev.style.display='block'
     img.onerror=()=>prev.style.display='none'
   } else { prev.style.display='none' }
-  renderStrip(); if(activeTab==='j') refreshJson()
+  renderStripNoScroll(); if(activeTab==='j') refreshJson(); renderCardPreview()
 }
 
 // ── Crop / Pan ─────────────────────────────────────────────
@@ -691,6 +736,7 @@ function showCrop(src, cropX){
   img.src=src
   applyCrop(cropX)
   initCropDrag()
+  renderCardPreview()
 }
 function applyCrop(pct){
   const img=document.getElementById('cropImg')
@@ -714,6 +760,7 @@ function startDrag(startX){
     cards[idx].cropX=newX
     applyCrop(newX)
     if(activeTab==='j') refreshJson()
+    renderCardPreview()
   }
   const stop=()=>{
     dragging=false
@@ -739,29 +786,45 @@ function switchTab(t,btn){
 }
 
 // ── Buttons ────────────────────────────────────────────────
+const BTN_COLORS = [
+  {hex:'#06C755',name:'LINE 綠'},
+  {hex:'#2196F3',name:'藍色'},
+  {hex:'#FF5722',name:'橘紅'},
+  {hex:'#9C27B0',name:'紫色'},
+  {hex:'#F44336',name:'紅色'},
+  {hex:'#FF9800',name:'橙色'},
+  {hex:'#009688',name:'藍綠'},
+  {hex:'#607D8B',name:'灰藍'},
+  {hex:'#333333',name:'深灰'},
+]
+
 function renderBtnList(){
   const c=cards[idx], container=document.getElementById('btnList')
   document.getElementById('btnAB').disabled=(c.btns||[]).length>=MAX_BTNS
   if(!c.btns||c.btns.length===0){
     container.innerHTML='<div class="btns-empty">尚未新增按鈕</div>'; return
   }
-  container.innerHTML=`<div class="btn-list">${c.btns.map((b,i)=>`
-    <div class="btn-row">
+  container.innerHTML=`<div class="btn-list">${c.btns.map((b,i)=>{
+    const col=b.color||'#06C755'
+    const swatches=BTN_COLORS.map(s=>`<div class="swatch${s.hex===col?' act':''}" style="background:${s.hex}" title="${s.name}" onclick="updBtn(${i},'color','${s.hex}')"></div>`).join('')
+    return `<div class="btn-row">
       <div class="btn-inputs">
         <input class="fi-s" type="text" placeholder="按鈕文字（最多 20 字）" maxlength="20" value="${esc(b.label)}" oninput="updBtn(${i},'label',this.value)">
         <input class="fi-s" type="url" placeholder="https://…" value="${esc(b.url)}" oninput="updBtn(${i},'url',this.value)">
+        <div class="color-swatches">${swatches}</div>
       </div>
       <button class="btn-rm" onclick="rmBtn(${i})">×</button>
-    </div>
-  `).join('')}</div>`
+    </div>`
+  }).join('')}</div>`
 }
 function addBtn(){
   const c=cards[idx]; if(!c.btns) c.btns=[]
   if(c.btns.length>=MAX_BTNS){ toast('最多 '+MAX_BTNS+' 個按鈕','warn'); return }
-  c.btns.push({label:'',url:''}); renderBtnList(); if(activeTab==='j') refreshJson()
+  c.btns.push({label:'',url:'',color:'#06C755'}); renderBtnList(); if(activeTab==='j') refreshJson()
+  renderCardPreview()
 }
-function rmBtn(i){ cards[idx].btns.splice(i,1); renderBtnList(); if(activeTab==='j') refreshJson() }
-function updBtn(i,f,v){ cards[idx].btns[i][f]=v; if(activeTab==='j') refreshJson() }
+function rmBtn(i){ cards[idx].btns.splice(i,1); renderBtnList(); if(activeTab==='j') refreshJson(); renderCardPreview() }
+function updBtn(i,f,v){ cards[idx].btns[i][f]=v; if(activeTab==='j') refreshJson(); renderCardPreview() }
 function esc(s){ return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;') }
 
 // ── Render ─────────────────────────────────────────────────
@@ -770,10 +833,45 @@ function renderAll(){
   document.getElementById('cntNum').textContent=cards.length
   document.getElementById('btnAdd').disabled=cards.length>=MAX_CARDS
   document.getElementById('btnDel').disabled=cards.length<=1
+  renderCardPreview()
 }
-function renderStrip(){
-  const strip=document.getElementById('strip')
-  strip.innerHTML=cards.map((c,i)=>{
+
+function renderCardPreview(){
+  const c=cards[idx]
+  const src=c.mode==='up'?(c.cloudUrl||c.dataUrl):c.imgUrl
+  const ratio=c.ratio||'20:13'
+  const rMap={'20:13':'62.5%','1:1':'100%','3:4':'133%','9:16':'177%'}
+  const pb=rMap[ratio]||'62.5%'
+  const validBtns=(c.btns||[]).filter(b=>b.label)
+
+  let imgHtml=''
+  if(src){
+    imgHtml=`<img src="${src}" crossorigin="anonymous" referrerpolicy="no-referrer"
+      style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:${c.cropX||50}% center;display:block;"
+      onerror="this.style.display='none'">`
+  } else {
+    imgHtml=`<div class="cprev-img-ph" style="position:absolute;top:0;left:0;width:100%;height:100%;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </div>`
+  }
+
+  const bodyHtml=(c.title||c.body)?`<div class="cprev-body">
+    ${c.title?`<div class="cprev-title">${c.title}</div>`:''}
+    ${c.body?`<div class="cprev-body-text">${c.body}</div>`:''}
+  </div>`:'';
+
+  const footerHtml=validBtns.length>0?`<div class="cprev-footer">
+    ${validBtns.map(b=>`<div class="cprev-btn" style="background:${b.color||'#06C755'}">${b.label}</div>`).join('')}
+  </div>`:''
+
+  document.getElementById('cardPreview').innerHTML=`
+    <div class="cprev-img" style="position:relative;padding-bottom:${pb};overflow:hidden;">${imgHtml}</div>
+    ${bodyHtml}
+    ${footerHtml}
+  `
+}
+function buildStripHTML(){
+  return cards.map((c,i)=>{
     const src=c.mode==='up'?(c.cloudUrl||c.dataUrl):c.imgUrl
     const r=RATIOS[c.ratio||'20:13']||RATIOS['20:13']
     let host=''
@@ -789,10 +887,17 @@ function renderStrip(){
       </div>
     </div>`
   }).join('')
+}
+function renderStrip(){
+  const strip=document.getElementById('strip')
+  strip.innerHTML=buildStripHTML()
   setTimeout(()=>{
     const a=strip.querySelector('.pc.act')
     if(a) a.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})
   },50)
+}
+function renderStripNoScroll(){
+  document.getElementById('strip').innerHTML=buildStripHTML()
 }
 function updLabel(){ document.getElementById('edLabel').textContent=cn(idx)+' ' }
 function cn(i){ return['①','②','③','④','⑤'][i]||String(i+1) }
@@ -818,13 +923,13 @@ function buildFlex(){
 
     const bodyContents=[]
     if(c.title) bodyContents.push({type:'text',text:c.title.slice(0,40),weight:'bold',size:'sm',wrap:true,color:'#111111'})
-    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,80),size:'xs',wrap:true,color:'#555555',margin:c.title?'sm':undefined})
+    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,120),size:'xs',wrap:true,color:'#555555',margin:c.title?'sm':undefined})
     if(bodyContents.length>0) bubble.body={type:'box',layout:'vertical',contents:bodyContents,paddingAll:'md',action:cardAction}
 
     const validBtns=(c.btns||[]).filter(b=>b.label&&b.url)
     if(validBtns.length>0){
       bubble.footer={type:'box',layout:'vertical',spacing:'xs',paddingAll:'sm',
-        contents:validBtns.map(b=>({type:'button',action:{type:'uri',label:b.label.slice(0,20),uri:b.url},style:'primary',color:'#06C755',height:'sm'}))}
+        contents:validBtns.map(b=>({type:'button',action:{type:'uri',label:b.label.slice(0,20),uri:b.url},style:'primary',color:b.color||'#06C755',height:'sm'}))}
     }
     return bubble
   })
@@ -847,7 +952,7 @@ async function doUploadThenShare(){
         const card=cards[i]
         if(card.mode==='up'&&card.dataUrl&&!card.cloudUrl){
           toast(`上傳第 ${i+1} 張圖片…`,'')
-          card.cloudUrl=await uploadToCloudinary(card.dataUrl)||''
+          card.cloudUrl=await uploadToCloudinary(card.dataUrl, card.cropX||50)||''
         }
       }
       toast('✓ 圖片上傳完成，請再按一次「分享給好友」','ok')
