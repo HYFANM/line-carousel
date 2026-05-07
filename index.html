@@ -416,7 +416,7 @@ function mkCard(){
   const urlParams = new URLSearchParams(window.location.search)
   const binParam = urlParams.get('b')
   if(binParam){
-    // Auto-share mode: fetch from jsonbin then share
+    // Auto-share mode: fetch from Cloudinary then share
     autoInitAndShare(lid, binParam)
   } else {
     autoInit(lid)
@@ -494,10 +494,11 @@ function showAutoShareLoading(){
 async function autoInitAndShare(id, binId){
   showAutoShareLoading()
   try{
-    // Fetch flex JSON from paste.rs
-    const pasteRes = await fetch(`https://paste.rs/${binId}`)
-    if(!pasteRes.ok) throw new Error('無法讀取卡片資料')
-    const flexJson = JSON.parse(await pasteRes.text())
+    // Fetch flex JSON from Cloudinary raw file
+    const rawUrl = `https://res.cloudinary.com/dgizk0jkb/raw/upload/${decodeURIComponent(binId)}`
+    const rawRes = await fetch(rawUrl)
+    if(!rawRes.ok) throw new Error('無法讀取卡片資料')
+    const flexJson = JSON.parse(await rawRes.text())
 
     // Init LIFF
     await liff.init({liffId:id})
@@ -1095,8 +1096,6 @@ function copyJson(){
 }
 
 let _lastShareLink = ''
-const JSONBIN_KEY = '$2a$10$placeholder' // will use public bins (no key needed for create)
-
 async function genShareLink(){
   save()
   const hasContent = cards.some(c=>c.title||c.url||c.imgUrl||c.cloudUrl)
@@ -1111,16 +1110,20 @@ async function genShareLink(){
 
   try{
     const flex = buildFlex()
-    // Store to jsonbin.io (free, no auth required for public bins)
-    const res = await fetch('https://api.paste.rs/', {
-      method: 'POST',
-      headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify(flex)
+    // Upload JSON as raw file to Cloudinary (already have account, no extra setup)
+    const blob = new Blob([JSON.stringify(flex)], {type:'application/json'})
+    const fd = new FormData()
+    fd.append('file', blob, 'flex.json')
+    fd.append('upload_preset', 'image_uploader')
+    fd.append('resource_type', 'raw')
+    const res = await fetch('https://api.cloudinary.com/v1_1/dgizk0jkb/raw/upload', {
+      method: 'POST', body: fd
     })
     if(!res.ok) throw new Error('儲存失敗 '+res.status)
-    const pasteUrl = await res.text()            // e.g. https://paste.rs/abc
-    const pasteId = pasteUrl.trim().split('/').pop()
-    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${pasteId}`
+    const data = await res.json()
+    // Use public_id as the key (short identifier)
+    const rawId = encodeURIComponent(data.public_id)
+    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${rawId}`
     _lastShareLink = fullUrl
     const box = document.getElementById('shareLinkBox')
     document.getElementById('shareLinkUrl').textContent = fullUrl
