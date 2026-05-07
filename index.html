@@ -494,15 +494,10 @@ function showAutoShareLoading(){
 async function autoInitAndShare(id, binId){
   showAutoShareLoading()
   try{
-    // Fetch flex JSON from jsonbin
-    const binRes = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{
-      headers:{'X-Access-Key':'$2a$10$placeholder'}
-    })
-    // jsonbin public bins don't need key
-    const binResAlt = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`)
-    if(!binResAlt.ok) throw new Error('無法讀取卡片資料')
-    const binData = await binResAlt.json()
-    const flexJson = binData.record.flex
+    // Fetch flex JSON from paste.rs
+    const pasteRes = await fetch(`https://paste.rs/${binId}`)
+    if(!pasteRes.ok) throw new Error('無法讀取卡片資料')
+    const flexJson = JSON.parse(await pasteRes.text())
 
     // Init LIFF
     await liff.init({liffId:id})
@@ -648,28 +643,26 @@ const TEMPLATES = [
   { name:'李慧絹名片', icon:'👤', desc:'業務主任聯絡卡', cards:[
     {
       title:'李慧絹｜業務主任',
-      body:'南山人壽保險 新竹直轄通訊處｜T: 03-5351860',
-      url:'tel:0931035254',
-      imgUrl: 'https://cd.nccu.edu.tw/uploads/company/790a274ba4250a4f26894834ded6d9a6.jpg',
+      body:'南山人壽保險股份有限公司 新竹直轄通訊處 | 300新竹市東大路二段110號2樓之3',
+      url:'https://www.nanshanlife.com.tw/nanshanlife/',
+      imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📞 手機 0931-035-254',url:'tel:0931035254',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:g3308.kimo@gmail.com',color:'#2196F3'},
-        {label:'🗺 查看地圖',url:'https://maps.app.goo.gl/hsfPXWAeZLVxerGA7',color:'#FF5722'},
       ]
     },
   ]},
   { name:'范源金名片', icon:'👤', desc:'業務代表聯絡卡', cards:[
     {
       title:'范源金｜業務代表',
-      body:'南山人壽保險 新竹直轄通訊處｜T: 03-5351860',
-      url:'tel:0935270546',
-      imgUrl: 'https://cd.nccu.edu.tw/uploads/company/790a274ba4250a4f26894834ded6d9a6.jpg',
+      body:'南山人壽保險股份有限公司 新竹直轄通訊處 | 300新竹市東大路二段110號2樓之3',
+      url:'https://www.nanshanlife.com.tw/nanshanlife/',
+      imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📞 手機 0935-270-546',url:'tel:0935270546',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:fan51101@gmail.com',color:'#2196F3'},
-        {label:'🗺 查看地圖',url:'https://maps.app.goo.gl/hsfPXWAeZLVxerGA7',color:'#FF5722'},
       ]
     },
   ]},
@@ -1119,18 +1112,15 @@ async function genShareLink(){
   try{
     const flex = buildFlex()
     // Store to jsonbin.io (free, no auth required for public bins)
-    const res = await fetch('https://api.jsonbin.io/v3/b', {
+    const res = await fetch('https://api.paste.rs/', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Bin-Private': 'false'
-      },
-      body: JSON.stringify({flex})
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify(flex)
     })
     if(!res.ok) throw new Error('儲存失敗 '+res.status)
-    const data = await res.json()
-    const binId = data.metadata.id
-    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${binId}`
+    const pasteUrl = await res.text()            // e.g. https://paste.rs/abc
+    const pasteId = pasteUrl.trim().split('/').pop()
+    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${pasteId}`
     _lastShareLink = fullUrl
     const box = document.getElementById('shareLinkBox')
     document.getElementById('shareLinkUrl').textContent = fullUrl
