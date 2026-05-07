@@ -180,6 +180,15 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .toast.err{border-color:rgba(255,77,77,.5);color:var(--red);}
 .toast.warn{border-color:rgba(245,166,35,.5);color:var(--amber);}
 .sp{height:18px;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-backdrop.show{display:flex;}
+.modal-box{background:var(--sf);border-radius:var(--r) var(--r) 0 0;padding:24px 20px 36px;width:100%;max-width:600px;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.modal-desc{font-size:13px;color:var(--txm);margin-bottom:20px;line-height:1.6;}
+.modal-btns{display:flex;flex-direction:column;gap:8px;}
+.modal-btn-append{padding:14px;background:var(--green);border:none;border-radius:var(--rs);color:#000;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;}
+.modal-btn-replace{padding:14px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.modal-btn-cancel{padding:12px;background:transparent;border:none;border-radius:var(--rs);color:var(--txm);font-family:inherit;font-size:13px;cursor:pointer;}
 .btn-genlink{width:100%;padding:12px;background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.4);border-radius:var(--r);color:var(--blue);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
 .btn-genlink:hover{background:rgba(74,158,255,0.2);}
 .sharelink-box{display:none;margin-top:8px;padding:12px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);}
@@ -385,6 +394,19 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
   </button>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- Template append/replace modal -->
+<div class="modal-backdrop" id="tplModal" onclick="if(event.target===this)hideTplModal()">
+  <div class="modal-box">
+    <div class="modal-title">套用範本</div>
+    <div class="modal-desc">你已有現有卡片，要如何套用這個範本？</div>
+    <div class="modal-btns">
+      <button class="modal-btn-append" onclick="tplAppend()">➕ 追加到現有卡片後面</button>
+      <button class="modal-btn-replace" onclick="tplReplace()">🔄 取代所有現有卡片</button>
+      <button class="modal-btn-cancel" onclick="hideTplModal()">取消</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── Constants ──────────────────────────────────────────────
@@ -678,9 +700,44 @@ function renderTemplates(){
   ).join('')
 }
 function applyTemplate(i){
+  save()
   const tpl=TEMPLATES[i]
-  cards=tpl.cards.map(c=>({...mkCard(),...c,btns:(c.btns||[]).map((b,bi)=>({color:BTN_COLORS[bi%BTN_COLORS.length].hex,...b}))}))
-  idx=0; renderAll(); toast('已套用：'+tpl.name,'ok')
+  const newCards=tpl.cards.map(c=>({...mkCard(),...c,btns:(c.btns||[]).map((b,bi)=>({color:BTN_COLORS[bi%BTN_COLORS.length].hex,...b}))}))
+  const hasExisting = cards.some(c=>c.title||c.imgUrl||c.cloudUrl||c.dataUrl||c.url)
+  if(!hasExisting){
+    // No content yet, just replace
+    cards=newCards; idx=0; renderAll(); toast('已套用：'+tpl.name,'ok')
+    return
+  }
+  // Has content - show append/replace choice
+  _pendingTpl = {newCards, name:tpl.name}
+  showTplModal()
+}
+
+let _pendingTpl = null
+
+function showTplModal(){
+  document.getElementById('tplModal').classList.add('show')
+}
+function hideTplModal(){
+  document.getElementById('tplModal').classList.remove('show')
+  _pendingTpl = null
+}
+function tplAppend(){
+  if(!_pendingTpl) return
+  const total = cards.length + _pendingTpl.newCards.length
+  if(total > MAX_CARDS){
+    toast(`超過上限，最多 ${MAX_CARDS} 張（目前 ${cards.length} 張，範本 ${_pendingTpl.newCards.length} 張）`,'warn')
+    hideTplModal(); return
+  }
+  cards = [...cards, ..._pendingTpl.newCards]
+  idx = cards.length - _pendingTpl.newCards.length  // jump to first new card
+  hideTplModal(); renderAll(); toast('已追加：'+_pendingTpl.name,'ok')
+}
+function tplReplace(){
+  if(!_pendingTpl) return
+  cards = _pendingTpl.newCards; idx=0
+  hideTplModal(); renderAll(); toast('已套用：'+_pendingTpl.name,'ok')
 }
 
 // ── Cards ──────────────────────────────────────────────────
@@ -1133,13 +1190,13 @@ async function genShareLink(){
       flexWithShare.contents.contents = flexWithShare.contents.contents.map(bubble => {
         const shareBtn = {
           type:'button',
-          action:{type:'uri', label:'📤 分享給朋友', uri:shareUrl},
+          action:{type:'uri', label:'📤 轉傳給朋友', uri:shareUrl},
           style:'primary', color:'#333333', height:'sm'
         }
         if(!bubble.footer){
           bubble.footer = {type:'box',layout:'vertical',spacing:'xs',paddingAll:'sm',contents:[shareBtn]}
         } else {
-          const already = bubble.footer.contents.some(b=>b.action?.label==='📤 分享給朋友')
+          const already = bubble.footer.contents.some(b=>b.action?.label==='📤 轉傳給朋友')
           if(!already) bubble.footer.contents.push(shareBtn)
         }
         return bubble
