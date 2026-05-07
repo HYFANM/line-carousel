@@ -1110,20 +1110,45 @@ async function genShareLink(){
 
   try{
     const flex = buildFlex()
-    // Upload JSON as raw file to Cloudinary (already have account, no extra setup)
-    const blob = new Blob([JSON.stringify(flex)], {type:'application/json'})
-    const fd = new FormData()
-    fd.append('file', blob, 'flex.json')
-    fd.append('upload_preset', 'image_uploader')
-    fd.append('resource_type', 'raw')
-    const res = await fetch('https://api.cloudinary.com/v1_1/dgizk0jkb/raw/upload', {
-      method: 'POST', body: fd
-    })
-    if(!res.ok) throw new Error('儲存失敗 '+res.status)
-    const data = await res.json()
-    // Use public_id as the key (short identifier)
-    const rawId = encodeURIComponent(data.public_id)
-    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${rawId}`
+
+    // Helper: upload JSON blob to Cloudinary, returns public_id
+    const uploadJson = async (obj) => {
+      const blob = new Blob([JSON.stringify(obj)], {type:'application/json'})
+      const fd = new FormData()
+      fd.append('file', blob, 'flex.json')
+      fd.append('upload_preset', 'image_uploader')
+      fd.append('resource_type', 'raw')
+      const r = await fetch('https://api.cloudinary.com/v1_1/dgizk0jkb/raw/upload', {method:'POST',body:fd})
+      if(!r.ok) throw new Error('儲存失敗 '+r.status)
+      return (await r.json()).public_id
+    }
+
+    // Step 1: upload base flex to get ID → build share URL
+    const baseId = await uploadJson(flex)
+    const shareUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${encodeURIComponent(baseId)}`
+
+    // Step 2: inject share button into every bubble
+    const flexWithShare = JSON.parse(JSON.stringify(flex))
+    if(flexWithShare.contents?.contents){
+      flexWithShare.contents.contents = flexWithShare.contents.contents.map(bubble => {
+        const shareBtn = {
+          type:'button',
+          action:{type:'uri', label:'📤 分享給朋友', uri:shareUrl},
+          style:'primary', color:'#333333', height:'sm'
+        }
+        if(!bubble.footer){
+          bubble.footer = {type:'box',layout:'vertical',spacing:'xs',paddingAll:'sm',contents:[shareBtn]}
+        } else {
+          const already = bubble.footer.contents.some(b=>b.action?.label==='📤 分享給朋友')
+          if(!already) bubble.footer.contents.push(shareBtn)
+        }
+        return bubble
+      })
+    }
+
+    // Step 3: re-upload final version (with share button baked in)
+    const finalId = await uploadJson(flexWithShare)
+    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${encodeURIComponent(finalId)}`
     _lastShareLink = fullUrl
     const box = document.getElementById('shareLinkBox')
     document.getElementById('shareLinkUrl').textContent = fullUrl
