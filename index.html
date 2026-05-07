@@ -180,6 +180,13 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .toast.err{border-color:rgba(255,77,77,.5);color:var(--red);}
 .toast.warn{border-color:rgba(245,166,35,.5);color:var(--amber);}
 .sp{height:18px;}
+.btn-genlink{width:100%;padding:12px;background:rgba(74,158,255,0.1);border:1px solid rgba(74,158,255,0.4);border-radius:var(--r);color:var(--blue);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-genlink:hover{background:rgba(74,158,255,0.2);}
+.sharelink-box{display:none;margin-top:8px;padding:12px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);}
+.sharelink-box.show{display:block;}
+.sharelink-url{font-family:'Syne',monospace;font-size:11px;color:var(--blue);word-break:break-all;line-height:1.6;margin-bottom:8px;}
+.sharelink-note{font-size:11px;color:var(--txd);line-height:1.6;}
+.btn-copylink{width:100%;padding:8px;background:var(--blue);border:none;border-radius:var(--rs);color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;}
 
 /* Card Live Preview */
 .preview-wrap{margin-top:14px;}
@@ -209,7 +216,7 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
     <div class="logo-ic">
       <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
     </div>
-    <span class="logo-tx">LINE 輪播卡片產生器</span>
+    <span class="logo-tx">CAROUSEL</span>
   </div>
   <div class="hdr-r">
     <div class="dot" id="liffDot"></div>
@@ -363,6 +370,15 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     分享給好友
   </button>
+  <button class="btn-genlink" onclick="genShareLink()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    產生轉傳連結（供收件人一鍵再分享）
+  </button>
+  <div class="sharelink-box" id="shareLinkBox">
+    <div class="sharelink-url" id="shareLinkUrl"></div>
+    <div class="sharelink-note">📌 把這個連結貼進按鈕的「卡片點擊連結」或「按鈕連結」，收件人點了就能直接選人分享，不需要自己操作。</div>
+    <button class="btn-copylink" onclick="copyShareLink()">複製連結</button>
+  </div>
   <button class="btn-cj" onclick="copyJson()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     複製 Flex JSON（備用）
@@ -392,9 +408,19 @@ function mkCard(){
 // ── Boot ───────────────────────────────────────────────────
 ;(()=>{
   const lid = localStorage.getItem('liff_id') || '2009979041-xKPRsVZ1'
-  document.getElementById('liffInp').value=lid; autoInit(lid)
+  document.getElementById('liffInp').value=lid
   document.getElementById('cldName').value='dgizk0jkb'
   document.getElementById('cldPreset').value='image_uploader'
+
+  // Check for auto-share param in URL (?s=base64encodedJSON)
+  const urlParams = new URLSearchParams(window.location.search)
+  const shareParam = urlParams.get('s')
+  if(shareParam){
+    // Auto-share mode: init LIFF then immediately share
+    autoInitAndShare(lid, shareParam)
+  } else {
+    autoInit(lid)
+  }
   renderAll()
 })()
 
@@ -447,6 +473,36 @@ function setReady(id){
   document.getElementById('bannerTitle').textContent='LIFF 已連線 ✓'
   if(bOpen) toggleBanner()
 }
+
+async function autoInitAndShare(id, shareParam){
+  // Show auto-share loading UI
+  document.body.innerHTML = `
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0e0e10;color:#f0f0f0;font-family:'Noto Sans TC',sans-serif;padding:32px;text-align:center;gap:16px;">
+      <div style="width:48px;height:48px;border:3px solid rgba(255,255,255,0.1);border-top-color:#06C755;border-radius:50%;animation:spin .7s linear infinite;"></div>
+      <div style="font-size:16px;font-weight:700;">準備分享中…</div>
+      <div style="font-size:13px;color:#888;">請稍候</div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>`
+  try{
+    await liff.init({liffId:id})
+    if(!liff.isLoggedIn()){ liff.login(); return }
+    if(!liff.isApiAvailable('shareTargetPicker')){
+      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#ff4d4d;font-size:14px;padding:24px;text-align:center;">請在 LINE 內開啟此連結才能分享</div>'
+      return
+    }
+    // Decode flex message from param
+    const flexJson = JSON.parse(decodeURIComponent(atob(shareParam)))
+    const result = await liff.shareTargetPicker([flexJson], {isMultiple:true})
+    if(result){
+      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#06C755;font-size:16px;font-weight:700;">✓ 分享成功！</div>'
+    } else {
+      // Cancelled - just close or redirect back
+      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#888;font-size:14px;">已取消分享</div>'
+    }
+  } catch(e){
+    document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#ff4d4d;font-size:13px;padding:24px;text-align:center;">分享失敗：${e.message||'未知錯誤'}</div>`
+  }
+}
 function dot(s){ document.getElementById('liffDot').className='dot'+(s?' '+s:'') }
 function toggleBanner(){
   bOpen=!bOpen
@@ -477,7 +533,6 @@ const TEMPLATES = [
       btns:[
         {label:'📈 查看完整報告',url:'https://www.twse.com.tw'},
         {label:'💬 加入討論',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
     {
@@ -488,7 +543,6 @@ const TEMPLATES = [
       mode:'url', ratio:'20:13',
       btns:[
         {label:'🌐 Yahoo 財經',url:'https://finance.yahoo.com'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
   ]},
@@ -502,7 +556,6 @@ const TEMPLATES = [
       btns:[
         {label:'📖 了解更多',url:'https://www.lia-roc.org.tw'},
         {label:'📞 立即諮詢',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
     {
@@ -514,7 +567,6 @@ const TEMPLATES = [
       btns:[
         {label:'🔍 比較方案',url:'https://www.lia-roc.org.tw'},
         {label:'📞 免費諮詢',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
     {
@@ -525,7 +577,6 @@ const TEMPLATES = [
       mode:'url', ratio:'20:13',
       btns:[
         {label:'✅ 預約免費健檢',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
   ]},
@@ -539,7 +590,6 @@ const TEMPLATES = [
       btns:[
         {label:'📰 閱讀全文',url:'https://money.udn.com'},
         {label:'💬 LINE 留言討論',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
     {
@@ -551,7 +601,6 @@ const TEMPLATES = [
       btns:[
         {label:'🏛 金管會公告',url:'https://www.fsc.gov.tw'},
         {label:'📞 諮詢我',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
   ]},
@@ -565,7 +614,6 @@ const TEMPLATES = [
       btns:[
         {label:'🎟 立即報名',url:'https://line.me'},
         {label:'❓ 加好友詢問',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
     {
@@ -576,61 +624,34 @@ const TEMPLATES = [
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📅 預約時段',url:'https://line.me'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
   ]},
   { name:'李慧絹名片', icon:'👤', desc:'業務主任聯絡卡', cards:[
     {
       title:'李慧絹｜業務主任',
-      body:'南山人壽 新竹直轄通訊處',
+      body:'南山人壽保險 新竹直轄通訊處｜T: 03-5351860',
       url:'tel:0931035254',
       imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📞 手機 0931-035-254',url:'tel:0931035254',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:g3308.kimo@gmail.com',color:'#2196F3'},
-        {label:'🏢 辦公室 03-5351860',url:'tel:035351860',color:'#607D8B'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
-      ]
-    },
-    {
-      title:'南山人壽 新竹通訊處',
-      body:'300新竹市東大路二段110號2樓之3｜T: 03-5351860｜F: 03-5351915',
-      url:'https://maps.app.goo.gl/hsfPXWAeZLVxerGA7',
-      imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/assets/images/logo.svg',
-      mode:'url', ratio:'20:13',
-      btns:[
         {label:'🗺 查看地圖',url:'https://maps.app.goo.gl/hsfPXWAeZLVxerGA7',color:'#FF5722'},
-        {label:'🌐 南山人壽官網',url:'https://www.nanshanlife.com.tw',color:'#1565C0'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
   ]},
   { name:'范源金名片', icon:'👤', desc:'業務代表聯絡卡', cards:[
     {
       title:'范源金｜業務代表',
-      body:'南山人壽 新竹直轄通訊處',
+      body:'南山人壽保險 新竹直轄通訊處｜T: 03-5351860',
       url:'tel:0935270546',
       imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📞 手機 0935-270-546',url:'tel:0935270546',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:fan51101@gmail.com',color:'#2196F3'},
-        {label:'🏢 辦公室 03-5351860',url:'tel:035351860',color:'#607D8B'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
-      ]
-    },
-    {
-      title:'南山人壽 新竹通訊處',
-      body:'300新竹市東大路二段110號2樓之3｜T: 03-5351860｜F: 03-5351915',
-      url:'https://maps.app.goo.gl/hsfPXWAeZLVxerGA7',
-      imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/assets/images/logo.svg',
-      mode:'url', ratio:'20:13',
-      btns:[
         {label:'🗺 查看地圖',url:'https://maps.app.goo.gl/hsfPXWAeZLVxerGA7',color:'#FF5722'},
-        {label:'🌐 南山人壽官網',url:'https://www.nanshanlife.com.tw',color:'#1565C0'},
-        {label:"📤 分享給好友",url:"https://liff.line.me/2009979041-xKPRsVZ1",color:"#333333"},
       ]
     },
   ]},
@@ -1059,6 +1080,44 @@ function setBtnShare(txt,disabled){
 function copyJson(){
   navigator.clipboard.writeText(JSON.stringify(buildFlex(),null,2))
     .then(()=>toast('✓ Flex JSON 已複製','ok'))
+    .catch(()=>toast('複製失敗','err'))
+}
+
+let _lastShareLink = ''
+
+function genShareLink(){
+  save()
+  const hasContent = cards.some(c=>c.title||c.url||c.imgUrl||c.cloudUrl)
+  if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
+
+  // Check for unuploaded images
+  const hasBase64 = cards.some(c=>c.mode==='up'&&c.dataUrl&&!c.cloudUrl)
+  if(hasBase64){ toast('請先上傳圖片（按分享按鈕），再產生連結','warn'); return }
+
+  const flex = buildFlex()
+  const encoded = btoa(encodeURIComponent(JSON.stringify(flex)))
+
+  // Check URL length (LIFF URL has ~2000 char limit)
+  const liffBase = 'https://liff.line.me/2009979041-xKPRsVZ1?s='
+  const fullUrl = liffBase + encoded
+
+  if(fullUrl.length > 2000){
+    toast('卡片內容太多，連結超過長度限制，請減少卡片數量或文字','warn')
+    return
+  }
+
+  _lastShareLink = fullUrl
+  const box = document.getElementById('shareLinkBox')
+  document.getElementById('shareLinkUrl').textContent = fullUrl
+  box.classList.add('show')
+  // Scroll to show it
+  box.scrollIntoView({behavior:'smooth', block:'nearest'})
+  toast('✓ 轉傳連結已產生','ok')
+}
+
+function copyShareLink(){
+  navigator.clipboard.writeText(_lastShareLink)
+    .then(()=>toast('✓ 連結已複製','ok'))
     .catch(()=>toast('複製失敗','err'))
 }
 
