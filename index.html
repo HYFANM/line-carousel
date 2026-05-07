@@ -414,10 +414,10 @@ function mkCard(){
 
   // Check for auto-share param in URL (?s=base64encodedJSON)
   const urlParams = new URLSearchParams(window.location.search)
-  const shareParam = urlParams.get('s')
-  if(shareParam){
-    // Auto-share mode: init LIFF then immediately share
-    autoInitAndShare(lid, shareParam)
+  const binParam = urlParams.get('b')
+  if(binParam){
+    // Auto-share mode: fetch from jsonbin then share
+    autoInitAndShare(lid, binParam)
   } else {
     autoInit(lid)
   }
@@ -474,33 +474,51 @@ function setReady(id){
   if(bOpen) toggleBanner()
 }
 
-async function autoInitAndShare(id, shareParam){
-  // Show auto-share loading UI
+function showAutoShareUI(msg, color='#f0f0f0'){
+  document.body.innerHTML = `
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0e0e10;color:${color};font-family:'Noto Sans TC',sans-serif;padding:32px;text-align:center;gap:16px;">
+      <div style="font-size:16px;font-weight:700;">${msg}</div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>`
+}
+function showAutoShareLoading(){
   document.body.innerHTML = `
     <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0e0e10;color:#f0f0f0;font-family:'Noto Sans TC',sans-serif;padding:32px;text-align:center;gap:16px;">
       <div style="width:48px;height:48px;border:3px solid rgba(255,255,255,0.1);border-top-color:#06C755;border-radius:50%;animation:spin .7s linear infinite;"></div>
       <div style="font-size:16px;font-weight:700;">準備分享中…</div>
-      <div style="font-size:13px;color:#888;">請稍候</div>
+      <div style="font-size:13px;color:#888;">請稍候，勿關閉此頁面</div>
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>`
+}
+
+async function autoInitAndShare(id, binId){
+  showAutoShareLoading()
   try{
+    // Fetch flex JSON from jsonbin
+    const binRes = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{
+      headers:{'X-Access-Key':'$2a$10$placeholder'}
+    })
+    // jsonbin public bins don't need key
+    const binResAlt = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`)
+    if(!binResAlt.ok) throw new Error('無法讀取卡片資料')
+    const binData = await binResAlt.json()
+    const flexJson = binData.record.flex
+
+    // Init LIFF
     await liff.init({liffId:id})
     if(!liff.isLoggedIn()){ liff.login(); return }
     if(!liff.isApiAvailable('shareTargetPicker')){
-      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#ff4d4d;font-size:14px;padding:24px;text-align:center;">請在 LINE 內開啟此連結才能分享</div>'
+      showAutoShareUI('請在 LINE 內開啟此連結才能分享', '#ff4d4d')
       return
     }
-    // Decode flex message from param
-    const flexJson = JSON.parse(decodeURIComponent(atob(shareParam)))
     const result = await liff.shareTargetPicker([flexJson], {isMultiple:true})
     if(result){
-      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#06C755;font-size:16px;font-weight:700;">✓ 分享成功！</div>'
+      showAutoShareUI('✓ 分享成功！', '#06C755')
     } else {
-      // Cancelled - just close or redirect back
-      document.body.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#888;font-size:14px;">已取消分享</div>'
+      showAutoShareUI('已取消分享', '#888')
     }
   } catch(e){
-    document.body.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e10;color:#ff4d4d;font-size:13px;padding:24px;text-align:center;">分享失敗：${e.message||'未知錯誤'}</div>`
+    showAutoShareUI('分享失敗：'+(e.message||'未知錯誤'), '#ff4d4d')
   }
 }
 function dot(s){ document.getElementById('liffDot').className='dot'+(s?' '+s:'') }
@@ -632,7 +650,7 @@ const TEMPLATES = [
       title:'李慧絹｜業務主任',
       body:'南山人壽保險 新竹直轄通訊處｜T: 03-5351860',
       url:'tel:0931035254',
-      imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
+      imgUrl: 'https://cd.nccu.edu.tw/uploads/company/790a274ba4250a4f26894834ded6d9a6.jpg',
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📞 手機 0931-035-254',url:'tel:0931035254',color:'#06C755'},
@@ -646,7 +664,7 @@ const TEMPLATES = [
       title:'范源金｜業務代表',
       body:'南山人壽保險 新竹直轄通訊處｜T: 03-5351860',
       url:'tel:0935270546',
-      imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
+      imgUrl: 'https://cd.nccu.edu.tw/uploads/company/790a274ba4250a4f26894834ded6d9a6.jpg',
       mode:'url', ratio:'20:13',
       btns:[
         {label:'📞 手機 0935-270-546',url:'tel:0935270546',color:'#06C755'},
@@ -1084,35 +1102,47 @@ function copyJson(){
 }
 
 let _lastShareLink = ''
+const JSONBIN_KEY = '$2a$10$placeholder' // will use public bins (no key needed for create)
 
-function genShareLink(){
+async function genShareLink(){
   save()
   const hasContent = cards.some(c=>c.title||c.url||c.imgUrl||c.cloudUrl)
   if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
 
-  // Check for unuploaded images
   const hasBase64 = cards.some(c=>c.mode==='up'&&c.dataUrl&&!c.cloudUrl)
-  if(hasBase64){ toast('請先上傳圖片（按分享按鈕），再產生連結','warn'); return }
+  if(hasBase64){ toast('請先上傳圖片後再產生連結','warn'); return }
 
-  const flex = buildFlex()
-  const encoded = btoa(encodeURIComponent(JSON.stringify(flex)))
+  const btn = document.querySelector('.btn-genlink')
+  btn.textContent = '⏳ 儲存中…'
+  btn.disabled = true
 
-  // Check URL length (LIFF URL has ~2000 char limit)
-  const liffBase = 'https://liff.line.me/2009979041-xKPRsVZ1?s='
-  const fullUrl = liffBase + encoded
-
-  if(fullUrl.length > 2000){
-    toast('卡片內容太多，連結超過長度限制，請減少卡片數量或文字','warn')
-    return
+  try{
+    const flex = buildFlex()
+    // Store to jsonbin.io (free, no auth required for public bins)
+    const res = await fetch('https://api.jsonbin.io/v3/b', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify({flex})
+    })
+    if(!res.ok) throw new Error('儲存失敗 '+res.status)
+    const data = await res.json()
+    const binId = data.metadata.id
+    const fullUrl = `https://liff.line.me/2009979041-xKPRsVZ1?b=${binId}`
+    _lastShareLink = fullUrl
+    const box = document.getElementById('shareLinkBox')
+    document.getElementById('shareLinkUrl').textContent = fullUrl
+    box.classList.add('show')
+    box.scrollIntoView({behavior:'smooth', block:'nearest'})
+    toast('✓ 轉傳連結已產生','ok')
+  } catch(e){
+    toast('產生連結失敗：'+e.message,'err')
+  } finally {
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 產生轉傳連結（供收件人一鍵再分享）'
+    btn.disabled = false
   }
-
-  _lastShareLink = fullUrl
-  const box = document.getElementById('shareLinkBox')
-  document.getElementById('shareLinkUrl').textContent = fullUrl
-  box.classList.add('show')
-  // Scroll to show it
-  box.scrollIntoView({behavior:'smooth', block:'nearest'})
-  toast('✓ 轉傳連結已產生','ok')
 }
 
 function copyShareLink(){
