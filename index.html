@@ -6,6 +6,8 @@
 <title>LINE 輪播卡片產生器</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -720,7 +722,7 @@ const TEMPLATES = [
       imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
-        {label:'📞 手機 0935-270-546',url:'tel:0935270546',color:'#06C755'},
+        {label:'📞 手機 0936-270-546',url:'tel:0936270546',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:fan51101@gmail.com',color:'#2196F3'},
       ]
     },
@@ -749,42 +751,38 @@ function renderTemplates(){
 }
 
 // ── My Library ───────────────────────────────────────────
-const LIB_CLD_NAME = 'my_templates'  // fixed filename on Cloudinary
+// ── Firebase init ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyC5QuSXIW107wRSHzPW5s2u2zZQnIdmEaY",
+  authDomain: "line-carousel.firebaseapp.com",
+  projectId: "line-carousel",
+  storageBucket: "line-carousel.firebasestorage.app",
+  messagingSenderId: "76405456161",
+  appId: "1:76405456161:web:f7bb20080ac340431dd260"
+}
+firebase.initializeApp(firebaseConfig)
+const db = firebase.firestore()
+const LIB_DOC = db.collection('library').doc('shared')
 
-let myLib = []  // [{name, icon, cards}]
+let myLib = []  // [{name, icon, folder, cards}]
 
 async function loadMyLib(){
   try{
-    const storedUrl = localStorage.getItem('my_lib_url')
-    if(storedUrl){
-      const res = await fetch(storedUrl + '?t=' + Date.now())
-      if(res.ok){
-        myLib = await res.json()
-        renderMyLib()
-        return
-      }
+    const snap = await LIB_DOC.get()
+    if(snap.exists){
+      myLib = snap.data().items || []
+    } else {
+      myLib = []
     }
+  } catch(e){
+    console.warn('loadMyLib failed', e)
     myLib = []
-  } catch(e){ myLib = [] }
+  }
   renderMyLib()
 }
 
 async function saveLibToCloud(){
-  const blob = new Blob([JSON.stringify(myLib)], {type:'application/json'})
-  const fd = new FormData()
-  fd.append('file', blob, 'my_templates.json')
-  fd.append('upload_preset', 'image_uploader')
-  fd.append('resource_type', 'raw')
-  const res = await fetch('https://api.cloudinary.com/v1_1/dgizk0jkb/raw/upload', {method:'POST',body:fd})
-  if(!res.ok){
-    const err = await res.json().catch(()=>({error:{message:'未知錯誤'}}))
-    throw new Error(err.error?.message||'雲端儲存失敗')
-  }
-  const data = await res.json()
-  // Store the public_id so we can fetch it next time
-  localStorage.setItem('my_lib_id', data.public_id)
-  localStorage.setItem('my_lib_url', data.secure_url)
-  return data
+  await LIB_DOC.set({ items: myLib, updatedAt: Date.now() })
 }
 
 let _openFolder = null   // null = show folder list, string = show folder contents
