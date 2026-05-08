@@ -445,6 +445,18 @@ select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
   </div>
 </div>
 
+<!-- Delete confirm modal -->
+<div class="modal-backdrop" id="delModal" onclick="if(event.target===this)hideDelModal()">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ 確認刪除</div>
+    <div class="modal-desc" id="delModalDesc">確定要刪除這個範本嗎？刪除後無法復原。</div>
+    <div class="modal-btns">
+      <button class="modal-btn-replace" style="background:rgba(255,77,77,0.15);border-color:rgba(255,77,77,0.4);color:var(--red);" onclick="confirmDelMyLib()">🗑 確認刪除</button>
+      <button class="modal-btn-cancel" onclick="hideDelModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Constants ──────────────────────────────────────────────
 const MAX_CARDS = 5, MAX_BTNS = 4
@@ -474,9 +486,19 @@ const firebaseConfig = {
   messagingSenderId: "76405456161",
   appId: "1:76405456161:web:f7bb20080ac340431dd260"
 }
-firebase.initializeApp(firebaseConfig)
-const db = firebase.firestore()
-const LIB_DOC = db.collection('library').doc('shared')
+// Firebase will be initialized after SDK loads
+let db = null, LIB_DOC = null
+function initFirebase(){
+  try{
+    if(typeof firebase === 'undefined') return
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig)
+    db = firebase.firestore()
+    LIB_DOC = db.collection('library').doc('shared')
+  }catch(e){ console.warn('Firebase init failed:', e) }
+}
+// Try immediately, then also on window load as fallback
+initFirebase()
+window.addEventListener('load', ()=>{ if(!LIB_DOC){ initFirebase(); loadMyLib() } })
 
 let myLib = []  // [{name, icon, folder, cards}]
 
@@ -733,12 +755,12 @@ const TEMPLATES = [
   { name:'范源金名片', icon:'👤', desc:'業務代表聯絡卡', cards:[
     {
       title:'范源金｜業務代表',
-      body:'人身保險業務員資格測驗合格 | 南山人壽保險股份有限公司 新竹直轄通訊處'',
+      body:'人身保險業務員資格測驗合格 | 南山人壽保險股份有限公司 新竹直轄通訊處',
       url:'https://www.nanshanlife.com.tw/nanshanlife/',
       imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
-        {label:'📞 手機 0935-270-546',url:'tel:0935270546',color:'#06C755'},
+        {label:'📞 手機 0936-270-546',url:'tel:0936270546',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:fan51101@gmail.com',color:'#2196F3'},
       ]
     },
@@ -769,6 +791,8 @@ function renderTemplates(){
 // ── My Library ───────────────────────────────────────────
 
 async function loadMyLib(){
+  if(!LIB_DOC){ initFirebase() }
+  if(!LIB_DOC){ myLib = []; renderMyLib(); return }
   try{
     const snap = await LIB_DOC.get()
     if(snap.exists){
@@ -784,6 +808,8 @@ async function loadMyLib(){
 }
 
 async function saveLibToCloud(){
+  if(!LIB_DOC){ initFirebase() }
+  if(!LIB_DOC) throw new Error('Firebase 未初始化，請重新整理頁面')
   await LIB_DOC.set({ items: myLib, updatedAt: Date.now() })
 }
 
@@ -856,13 +882,27 @@ function applyMyLib(i){
   showTplModal()
 }
 
-async function delMyLib(i){
+let _delIdx = null
+
+function delMyLib(i){
+  _delIdx = i
   const name = myLib[i]?.name || '此範本'
-  if(!confirm(`確定要刪除「${name}」嗎？\n刪除後無法復原。`)) return
+  document.getElementById('delModalDesc').textContent = `確定要刪除「${name}」嗎？刪除後無法復原。`
+  document.getElementById('delModal').classList.add('show')
+}
+function hideDelModal(){
+  document.getElementById('delModal').classList.remove('show')
+  _delIdx = null
+}
+async function confirmDelMyLib(){
+  if(_delIdx === null) return
+  const i = _delIdx
+  hideDelModal()
+  const backup = myLib[i]
   myLib.splice(i,1)
   renderMyLib()
   try{ await saveLibToCloud(); toast('已刪除','ok') }
-  catch(e){ myLib.splice(i,0,myLib[i]); renderMyLib(); toast('刪除失敗：'+e.message,'err') }
+  catch(e){ myLib.splice(i,0,backup); renderMyLib(); toast('刪除失敗：'+e.message,'err') }
 }
 
 async function saveToMyLib(){
