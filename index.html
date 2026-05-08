@@ -173,8 +173,6 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .btn-share:hover{background:#08e060;transform:translateY(-1px);}
 .btn-share:active{transform:scale(.98);}
 .btn-share:disabled{background:var(--sf2);color:var(--txd);cursor:not-allowed;transform:none;}
-.btn-cj{width:100%;padding:11px;background:transparent;border:1px solid var(--bd);border-radius:var(--r);color:var(--txm);font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
-.btn-cj:hover{border-color:var(--bdh);color:var(--tx);}
 
 .toast{position:fixed;bottom:130px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--sf);border:1px solid var(--bd);color:var(--tx);padding:9px 18px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none;max-width:calc(100vw - 40px);text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -351,6 +349,23 @@ select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
               <option value="xxl">xxl 超大</option>
               <option value="3xl">3xl 特大</option>
             </select>
+            <select class="fi-s" id="fTitleColor" onchange="onField()" style="flex:1;background:var(--sf2);">
+              <option value="#111111">⚫ 深黑（預設）</option>
+              <option value="#333333">🌑 深灰</option>
+              <option value="#555555">⬛ 灰色</option>
+              <option value="#1565C0">🔵 深藍</option>
+              <option value="#0288D1">💙 藍色</option>
+              <option value="#00897B">🟢 藍綠</option>
+              <option value="#2E7D32">🌿 深綠</option>
+              <option value="#06C755">💚 LINE 綠</option>
+              <option value="#C62828">🔴 深紅</option>
+              <option value="#E53935">❤️ 紅色</option>
+              <option value="#6A1B9A">🟣 深紫</option>
+              <option value="#AD1457">💜 紫紅</option>
+              <option value="#E65100">🟠 深橙</option>
+              <option value="#F57C00">🟡 橙色</option>
+              <option value="#FFFFFF">⬜ 白色</option>
+            </select>
           </div>
         </div>
         <div class="field">
@@ -366,7 +381,65 @@ select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
               <option value="lg">lg 大</option>
               <option value="xl">xl 很大</option>
             </select>
+            <select class="fi-s" id="fBodyColor" onchange="onField()" style="flex:1;background:var(--sf2);">
+              <option value="#555555">⬛ 灰色（預設）</option>
+              <option value="#111111">⚫ 深黑</option>
+              <option value="#333333">🌑 深灰</option>
+              <option value="#1565C0">🔵 深藍</option>
+              <option value="#0288D1">💙 藍色</option>
+              <option value="#00897B">🟢 藍綠</option>
+              <option value="#2E7D32">🌿 深綠</option>
+              <option value="#06C755">💚 LINE 綠</option>
+              <option value="#C62828">🔴 深紅</option>
+              <option value="#E53935">❤️ 紅色</option>
+              <option value="#6A1B9A">🟣 深紫</option>
+              <option value="#AD1457">💜 紫紅</option>
+              <option value="#E65100">🟠 深橙</option>
+              <option value="#F57C00">🟡 橙色</option>
+              <option value="#FFFFFF">⬜ 白色</option>
+            </select>
             <span style="font-size:10px;color:var(--txd);text-align:right;white-space:nowrap;" id="bcnt">0 / 120</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="flabel" style="display:flex;gap:12px;">
+            <span style="flex:1;">卡片外框顏色</span>
+            <span style="flex:1;">內容區背景色</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select class="fi-s" id="fBorderColor" onchange="onField()" style="flex:1;background:var(--sf2);">
+              <option value="none">無邊框（預設）</option>
+              <option value="#DDDDDD">⬜ 淺灰</option>
+              <option value="#AAAAAA">🔲 灰色</option>
+              <option value="#333333">⬛ 深灰</option>
+              <option value="#111111">⚫ 黑色</option>
+              <option value="#1565C0">🔵 深藍</option>
+              <option value="#0288D1">💙 藍色</option>
+              <option value="#06C755">💚 LINE 綠</option>
+              <option value="#2E7D32">🌿 深綠</option>
+              <option value="#C62828">🔴 深紅</option>
+              <option value="#E53935">❤️ 紅色</option>
+              <option value="#6A1B9A">🟣 深紫</option>
+              <option value="#E65100">🟠 深橙</option>
+              <option value="#F57C00">🟡 橙色</option>
+              <option value="#FFD700">✨ 金色</option>
+            </select>
+            <select class="fi-s" id="fBodyBgColor" onchange="onField()" style="flex:1;background:var(--sf2);">
+              <option value="#FFFFFF">⬜ 白色（預設）</option>
+              <option value="#F5F5F5">🔲 淺灰</option>
+              <option value="#FFF9C4">🟡 淺黃</option>
+              <option value="#E3F2FD">💙 淺藍</option>
+              <option value="#E8F5E9">💚 淺綠</option>
+              <option value="#FCE4EC">❤️ 淺粉</option>
+              <option value="#EDE7F6">🟣 淺紫</option>
+              <option value="#FFF3E0">🟠 淺橙</option>
+              <option value="#E0F2F1">🟢 淺青</option>
+              <option value="#111111">⚫ 深黑</option>
+              <option value="#1565C0">🔵 深藍</option>
+              <option value="#2E7D32">🌿 深綠</option>
+              <option value="#C62828">🔴 深紅</option>
+              <option value="#4A148C">🟣 深紫</option>
+            </select>
           </div>
         </div>
         <div class="field">
@@ -425,10 +498,7 @@ select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
     <div class="sharelink-note">📌 把這個連結貼進按鈕的「卡片點擊連結」或「按鈕連結」，收件人點了就能直接選人分享，不需要自己操作。</div>
     <button class="btn-copylink" onclick="copyShareLink()">複製連結</button>
   </div>
-  <button class="btn-cj" onclick="copyJson()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    複製 Flex JSON（備用）
-  </button>
+
 </div>
 <div class="toast" id="toast"></div>
 
@@ -460,6 +530,18 @@ select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
 <script>
 // ── Constants ──────────────────────────────────────────────
 const MAX_CARDS = 5, MAX_BTNS = 4
+const BTN_COLORS = [
+  {hex:'#06C755',name:'LINE 綠'},
+  {hex:'#2196F3',name:'藍色'},
+  {hex:'#FF5722',name:'橘紅'},
+  {hex:'#9C27B0',name:'紫色'},
+  {hex:'#F44336',name:'紅色'},
+  {hex:'#FF9800',name:'橙色'},
+  {hex:'#009688',name:'藍綠'},
+  {hex:'#607D8B',name:'灰藍'},
+  {hex:'#333333',name:'深灰'},
+]
+
 const RATIOS = {
   '20:13':{ css:'62.5%', stripH:78 },
   '1:1':  { css:'100%',  stripH:110 },
@@ -473,7 +555,8 @@ let dragStartX = 0, dragStartCrop = 50, dragging = false
 
 function mkCard(){
   return { title:'', body:'', url:'', dataUrl:'', cloudUrl:'', imgUrl:'',
-           mode:'up', ratio:'20:13', cropX:50, btns:[], titleSize:'sm', bodySize:'xs' }
+           mode:'up', ratio:'20:13', cropX:50, btns:[], titleSize:'sm', bodySize:'xs',
+           titleColor:'#111111', bodyColor:'#555555', borderColor:'none', bodyBgColor:'#FFFFFF' }
 }
 
 // ── Boot ───────────────────────────────────────────────────
@@ -1017,8 +1100,12 @@ function save(){
   c.body =document.getElementById('fBody').value
   c.url  =document.getElementById('fUrl').value
   c.imgUrl=document.getElementById('imgUrl').value
-  c.titleSize=document.getElementById('fTitleSize').value||'sm'
-  c.bodySize =document.getElementById('fBodySize').value||'xs'
+  c.titleSize =document.getElementById('fTitleSize').value||'sm'
+  c.bodySize  =document.getElementById('fBodySize').value||'xs'
+  c.titleColor =document.getElementById('fTitleColor').value||'#111111'
+  c.bodyColor  =document.getElementById('fBodyColor').value||'#555555'
+  c.borderColor =document.getElementById('fBorderColor').value||'none'
+  c.bodyBgColor =document.getElementById('fBodyBgColor').value||'#FFFFFF'
 }
 function load(){
   const c=cards[idx]
@@ -1027,8 +1114,12 @@ function load(){
   document.getElementById('fUrl').value  =c.url  ||''
   document.getElementById('imgUrl').value=c.imgUrl||''
   updCC(); updBC(); setModeUI(c.mode||'up'); setRatioUI(c.ratio||'20:13')
-  document.getElementById('fTitleSize').value=c.titleSize||'sm'
-  document.getElementById('fBodySize').value =c.bodySize||'xs'
+  document.getElementById('fTitleSize').value =c.titleSize||'sm'
+  document.getElementById('fBodySize').value  =c.bodySize||'xs'
+  document.getElementById('fTitleColor').value =c.titleColor||'#111111'
+  document.getElementById('fBodyColor').value  =c.bodyColor||'#555555'
+  document.getElementById('fBorderColor').value=c.borderColor||'none'
+  document.getElementById('fBodyBgColor').value=c.bodyBgColor||'#FFFFFF'
   // Upload preview
   if(c.mode==='up'){
     const src=c.cloudUrl||c.dataUrl
@@ -1200,17 +1291,6 @@ function switchTab(t,btn){
 }
 
 // ── Buttons ────────────────────────────────────────────────
-const BTN_COLORS = [
-  {hex:'#06C755',name:'LINE 綠'},
-  {hex:'#2196F3',name:'藍色'},
-  {hex:'#FF5722',name:'橘紅'},
-  {hex:'#9C27B0',name:'紫色'},
-  {hex:'#F44336',name:'紅色'},
-  {hex:'#FF9800',name:'橙色'},
-  {hex:'#009688',name:'藍綠'},
-  {hex:'#607D8B',name:'灰藍'},
-  {hex:'#333333',name:'深灰'},
-]
 
 function renderBtnList(){
   const c=cards[idx], container=document.getElementById('btnList')
@@ -1269,12 +1349,12 @@ function renderCardPreview(){
     </div>`
   }
 
-  const bodyHtml=(c.title||c.body)?`<div class="cprev-body">
-    ${c.title?`<div class="cprev-title" style="font-size:${({xxs:'10px',xs:'11px',sm:'13px',md:'15px',lg:'17px',xl:'20px',xxl:'24px','3xl':'29px'}[c.titleSize||'sm']||'13px')}">${c.title}</div>`:''}
-    ${c.body?`<div class="cprev-body-text" style="font-size:${({xxs:'9px',xs:'10px',sm:'11px',md:'13px',lg:'15px',xl:'17px'}[c.bodySize||'xs']||'10px')}">${c.body}</div>`:''}
+  const bodyHtml=(c.title||c.body)?`<div class="cprev-body" style="background:${c.bodyBgColor||'#FFFFFF'}">
+    ${c.title?`<div class="cprev-title" style="font-size:${({xxs:'10px',xs:'11px',sm:'13px',md:'15px',lg:'17px',xl:'20px',xxl:'24px','3xl':'29px'}[c.titleSize||'sm']||'13px')};color:${c.titleColor||'#111111'}">${c.title}</div>`:''}
+    ${c.body?`<div class="cprev-body-text" style="font-size:${({xxs:'9px',xs:'10px',sm:'11px',md:'13px',lg:'15px',xl:'17px'}[c.bodySize||'xs']||'10px')};color:${c.bodyColor||'#555555'}">${c.body}</div>`:''}
   </div>`:'';
 
-  const footerHtml=validBtns.length>0?`<div class="cprev-footer">
+  const footerHtml=validBtns.length>0?`<div class="cprev-footer" style="background:${c.bodyBgColor||'#FFFFFF'}">
     ${validBtns.map(b=>`<div class="cprev-btn" style="background:${b.color||'#06C755'}">${b.label}</div>`).join('')}
   </div>`:''
 
@@ -1324,6 +1404,21 @@ function buildFlex(){
     const imgSrc=c.mode==='up'?(c.cloudUrl||c.dataUrl||''):(c.imgUrl||'')
     const cardAction=c.url?{type:'uri',label:c.title||'查看',uri:c.url}:undefined
     const bubble={type:'bubble',size:'kilo'}
+    // Apply border color
+    if(c.borderColor && c.borderColor !== 'none'){
+      bubble.styles = {
+        body:{ separator: false },
+        footer:{ separator: false }
+      }
+      bubble.borderColor = c.borderColor
+      bubble.borderWidth = 'light'
+    }
+    // Apply body + footer background color
+    if(c.bodyBgColor && c.bodyBgColor !== '#FFFFFF'){
+      if(!bubble.styles) bubble.styles = {}
+      bubble.styles.body   = { ...(bubble.styles.body||{}),   backgroundColor: c.bodyBgColor }
+      bubble.styles.footer = { ...(bubble.styles.footer||{}), backgroundColor: c.bodyBgColor }
+    }
 
     if(imgSrc){
       const hero={type:'image',url:imgSrc,size:'full',aspectRatio:ratio,aspectMode:'cover'}
@@ -1336,8 +1431,8 @@ function buildFlex(){
     }
 
     const bodyContents=[]
-    if(c.title) bodyContents.push({type:'text',text:c.title.slice(0,40),weight:'bold',size:c.titleSize||'sm',wrap:true,color:'#111111'})
-    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,120),size:c.bodySize||'xs',wrap:true,color:'#555555',margin:c.title?'sm':undefined})
+    if(c.title) bodyContents.push({type:'text',text:c.title.slice(0,40),weight:'bold',size:c.titleSize||'sm',wrap:true,color:c.titleColor||'#111111'})
+    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,120),size:c.bodySize||'xs',wrap:true,color:c.bodyColor||'#555555',margin:c.title?'sm':undefined})
     if(bodyContents.length>0) bubble.body={type:'box',layout:'vertical',contents:bodyContents,paddingAll:'md',action:cardAction}
 
     const validBtns=(c.btns||[]).filter(b=>b.label&&b.url)
@@ -1407,11 +1502,6 @@ function setBtnShare(txt,disabled){
 }
 
 // ── Copy ───────────────────────────────────────────────────
-function copyJson(){
-  navigator.clipboard.writeText(JSON.stringify(buildFlex(),null,2))
-    .then(()=>toast('✓ Flex JSON 已複製','ok'))
-    .catch(()=>toast('複製失敗','err'))
-}
 
 let _lastShareLink = ''
 async function genShareLink(){
@@ -1460,6 +1550,7 @@ async function genShareLink(){
           const already = bubble.footer.contents.some(b=>b.action?.label==='📤 轉傳給朋友')
           if(!already) bubble.footer.contents.push(shareBtn)
         }
+        // Keep footer bg in sync with body bg (already set via bubble.styles)
         return bubble
       })
     }
