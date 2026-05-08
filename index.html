@@ -733,7 +733,7 @@ const TEMPLATES = [
   { name:'范源金名片', icon:'👤', desc:'業務代表聯絡卡', cards:[
     {
       title:'范源金｜業務代表',
-      body:'人身保險業務員資格測驗合格 | 南山人壽保險股份有限公司 新竹直轄通訊處',
+      body:'人身保險業務員資格測驗合格 | 南山人壽保險股份有限公司 新竹直轄通訊處'',
       url:'https://www.nanshanlife.com.tw/nanshanlife/',
       imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
@@ -857,10 +857,12 @@ function applyMyLib(i){
 }
 
 async function delMyLib(i){
+  const name = myLib[i]?.name || '此範本'
+  if(!confirm(`確定要刪除「${name}」嗎？\n刪除後無法復原。`)) return
   myLib.splice(i,1)
   renderMyLib()
   try{ await saveLibToCloud(); toast('已刪除','ok') }
-  catch(e){ toast('刪除失敗：'+e.message,'err') }
+  catch(e){ myLib.splice(i,0,myLib[i]); renderMyLib(); toast('刪除失敗：'+e.message,'err') }
 }
 
 async function saveToMyLib(){
