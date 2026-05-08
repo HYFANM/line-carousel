@@ -1406,10 +1406,7 @@ function buildFlex(){
     const bubble={type:'bubble',size:'kilo'}
     // Apply border color
     if(c.borderColor && c.borderColor !== 'none'){
-      bubble.styles = {
-        body:{ separator: false },
-        footer:{ separator: false }
-      }
+      if(!bubble.styles) bubble.styles = {}
       bubble.borderColor = c.borderColor
       bubble.borderWidth = 'light'
     }
