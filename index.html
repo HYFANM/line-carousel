@@ -843,7 +843,7 @@ const TEMPLATES = [
       imgUrl: 'https://www.nanshanlife.com.tw/nanshanlife/resource/5fa12ad0-b8c4-4ff2-9c86-d4483a5471d1.jpg',
       mode:'url', ratio:'20:13',
       btns:[
-        {label:'📞 手機 0936-270-546',url:'tel:0936270546',color:'#06C755'},
+        {label:'📞 手機 0935-270-546',url:'tel:0935270546',color:'#06C755'},
         {label:'📧 Email 寄信',url:'mailto:fan51101@gmail.com',color:'#2196F3'},
       ]
     },
@@ -1406,7 +1406,6 @@ function buildFlex(){
     const bubble={type:'bubble',size:'kilo'}
     // Apply border color
     if(c.borderColor && c.borderColor !== 'none'){
-      if(!bubble.styles) bubble.styles = {}
       bubble.borderColor = c.borderColor
       bubble.borderWidth = 'light'
     }
@@ -1485,11 +1484,42 @@ function doShare(){
   if(stillPending){ toast('還有圖片未上傳，請先按「上傳圖片」','warn'); return }
 
   setBtnShare('⏳ 分享中…',true)
-  liff.shareTargetPicker([buildFlex()],{isMultiple:true})
+  const flexMsg = buildFlex()
+  console.log('[SHARE] flex JSON:', JSON.stringify(flexMsg).slice(0,500))
+  
+  // Validate: check JSON size (max 50KB for carousel)
+  const jsonSize = JSON.stringify(flexMsg).length
+  console.log('[SHARE] JSON size:', jsonSize, 'bytes')
+  if(jsonSize > 50000){
+    toast('卡片內容太大（'+Math.round(jsonSize/1024)+'KB），請減少圖片或文字','err')
+    setBtnShare(); return
+  }
+  
+  // Validate: check for base64 images (not allowed)
+  const hasBase64 = JSON.stringify(flexMsg).includes('data:image')
+  if(hasBase64){
+    toast('有圖片未上傳至 Cloudinary，請先上傳','err')
+    setBtnShare(); return
+  }
+
+  liff.shareTargetPicker([flexMsg],{isMultiple:true})
     .then(result=>{
-      if(result) toast('✓ 分享成功！','ok'); else toast('已取消分享','')
+      console.log('[SHARE] result:', JSON.stringify(result))
+      if(!result){ toast('已取消分享',''); return }
+      if(result.status === 'success'){
+        toast('✓ 分享成功！','ok')
+      } else if(result.status === 'cancel'){
+        toast('已取消分享','')
+      } else {
+        // result exists but status unknown - log it
+        toast('✓ 已送出（'+JSON.stringify(result)+'）','ok')
+        console.log('[SHARE] unexpected result:', result)
+      }
     })
-    .catch(e=>{ toast('分享失敗：'+(e.message||'未知錯誤'),'err') })
+    .catch(e=>{
+      console.error('[SHARE] error:', e)
+      toast('分享失敗：'+(e.message||e.code||'未知錯誤'),'err')
+    })
     .finally(()=>{ setBtnShare() })
 }
 function setBtnShare(txt,disabled){
