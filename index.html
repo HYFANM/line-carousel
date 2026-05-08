@@ -755,8 +755,16 @@ let myLib = []  // [{name, icon, cards}]
 
 async function loadMyLib(){
   try{
-    const res = await fetch(`https://res.cloudinary.com/dgizk0jkb/raw/upload/${LIB_CLD_NAME}.json?t=${Date.now()}`)
-    if(res.ok) myLib = await res.json()
+    const storedUrl = localStorage.getItem('my_lib_url')
+    if(storedUrl){
+      const res = await fetch(storedUrl + '?t=' + Date.now())
+      if(res.ok){
+        myLib = await res.json()
+        renderMyLib()
+        return
+      }
+    }
+    myLib = []
   } catch(e){ myLib = [] }
   renderMyLib()
 }
@@ -764,15 +772,22 @@ async function loadMyLib(){
 async function saveLibToCloud(){
   const blob = new Blob([JSON.stringify(myLib)], {type:'application/json'})
   const fd = new FormData()
-  fd.append('file', blob, LIB_CLD_NAME+'.json')
+  fd.append('file', blob, 'my_templates.json')
   fd.append('upload_preset', 'image_uploader')
   fd.append('resource_type', 'raw')
-  fd.append('public_id', LIB_CLD_NAME)
-  fd.append('overwrite', 'true')
   const res = await fetch('https://api.cloudinary.com/v1_1/dgizk0jkb/raw/upload', {method:'POST',body:fd})
-  if(!res.ok) throw new Error('雲端儲存失敗')
-  return true
+  if(!res.ok){
+    const err = await res.json().catch(()=>({error:{message:'未知錯誤'}}))
+    throw new Error(err.error?.message||'雲端儲存失敗')
+  }
+  const data = await res.json()
+  // Store the public_id so we can fetch it next time
+  localStorage.setItem('my_lib_id', data.public_id)
+  localStorage.setItem('my_lib_url', data.secure_url)
+  return data
 }
+
+let _openFolder = null   // null = show folder list, string = show folder contents
 
 function renderMyLib(){
   const row = document.getElementById('myLibRow')
@@ -780,17 +795,52 @@ function renderMyLib(){
   if(!myLib.length){
     row.innerHTML = '<div style="font-size:12px;color:var(--txd);padding:8px 2px;">尚無自訂範本，做好卡片後按「存入範本庫」</div>'
     cnt.textContent = ''
+    _openFolder = null
     return
   }
   cnt.textContent = `(${myLib.length})`
-  row.innerHTML = myLib.map((t,i)=>`
-    <div class="tpl-card" onclick="applyMyLib(${i})">
-      <button class="tpl-card-del" onclick="event.stopPropagation();delMyLib(${i})" title="刪除">×</button>
-      <div class="tpl-ic">${t.icon||'📋'}</div>
-      <div class="tpl-name">${t.name}</div>
-      <div class="tpl-desc">${t.cards.length} 張卡片</div>
-    </div>`
-  ).join('')
+
+  // Group by folder
+  const folderMap = {}
+  myLib.forEach((t,i)=>{
+    const f = t.folder || '（未分類）'
+    if(!folderMap[f]) folderMap[f] = []
+    folderMap[f].push({...t, _i:i})
+  })
+  const folders = Object.keys(folderMap)
+
+  if(_openFolder === null || !folderMap[_openFolder]){
+    // Show folder list
+    row.innerHTML = folders.map(f=>`
+      <div class="tpl-card" onclick="openFolder('${f.replace(/'/g,"\\'")}')">
+        <div class="tpl-ic">📁</div>
+        <div class="tpl-name" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f}</div>
+        <div class="tpl-desc">${folderMap[f].length} 個範本</div>
+      </div>`
+    ).join('')
+  } else {
+    // Show items in folder
+    const items = folderMap[_openFolder]
+    row.innerHTML = `
+      <div class="tpl-card" onclick="openFolder(null)" style="border-color:var(--blue);background:rgba(74,158,255,0.08);">
+        <div class="tpl-ic">◀</div>
+        <div class="tpl-name" style="color:var(--blue);">返回</div>
+        <div class="tpl-desc">資料夾列表</div>
+      </div>` +
+      items.map(t=>`
+      <div class="tpl-card" onclick="applyMyLib(${t._i})">
+        <button class="tpl-card-del" onclick="event.stopPropagation();delMyLib(${t._i})" title="刪除">×</button>
+        <div class="tpl-ic">${t.icon||'📋'}</div>
+        <div class="tpl-name" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.name}</div>
+        <div class="tpl-desc">${t.cards.length} 張卡片</div>
+      </div>`
+    ).join('')
+  }
+}
+
+function openFolder(name){
+  _openFolder = name
+  renderMyLib()
 }
 
 function applyMyLib(i){
@@ -822,9 +872,27 @@ async function saveToMyLib(){
   const name = prompt('為這組卡片命名（將存入範本庫）：', cards[0]?.title||'我的範本')
   if(!name) return
 
+  // Ask for folder
+  const folders = [...new Set(myLib.map(t=>t.folder).filter(Boolean))]
+  let folder = ''
+  if(folders.length > 0){
+    const folderList = folders.map((f,i)=>`${i+1}. ${f}`).join('\n')
+    const choice = prompt(`選擇資料夾（直接輸入新名稱可建立新資料夾）：\n${folderList}\n\n輸入數字選現有，或輸入新名稱：`, '1')
+    if(choice === null) return
+    const num = parseInt(choice)
+    if(!isNaN(num) && num >= 1 && num <= folders.length){
+      folder = folders[num-1]
+    } else {
+      folder = choice.trim()
+    }
+  } else {
+    folder = prompt('輸入資料夾名稱（可留空，不分類）：', '') || ''
+  }
+
   const entry = {
     name: name.trim(),
     icon: '📋',
+    folder: folder.trim(),
     cards: JSON.parse(JSON.stringify(cards))
   }
 
