@@ -402,28 +402,8 @@ select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
           </div>
         </div>
         <div class="field">
-          <div class="flabel" style="display:flex;gap:12px;">
-            <span style="flex:1;">卡片外框顏色</span>
-            <span style="flex:1;">內容區背景色</span>
-          </div>
+          <div class="flabel">內容區背景色</div>
           <div style="display:flex;gap:8px;">
-            <select class="fi-s" id="fBorderColor" onchange="onField()" style="flex:1;background:var(--sf2);">
-              <option value="none">無邊框（預設）</option>
-              <option value="#DDDDDD">⬜ 淺灰</option>
-              <option value="#AAAAAA">🔲 灰色</option>
-              <option value="#333333">⬛ 深灰</option>
-              <option value="#111111">⚫ 黑色</option>
-              <option value="#1565C0">🔵 深藍</option>
-              <option value="#0288D1">💙 藍色</option>
-              <option value="#06C755">💚 LINE 綠</option>
-              <option value="#2E7D32">🌿 深綠</option>
-              <option value="#C62828">🔴 深紅</option>
-              <option value="#E53935">❤️ 紅色</option>
-              <option value="#6A1B9A">🟣 深紫</option>
-              <option value="#E65100">🟠 深橙</option>
-              <option value="#F57C00">🟡 橙色</option>
-              <option value="#FFD700">✨ 金色</option>
-            </select>
             <select class="fi-s" id="fBodyBgColor" onchange="onField()" style="flex:1;background:var(--sf2);">
               <option value="#FFFFFF">⬜ 白色（預設）</option>
               <option value="#F5F5F5">🔲 淺灰</option>
@@ -556,7 +536,7 @@ let dragStartX = 0, dragStartCrop = 50, dragging = false
 function mkCard(){
   return { title:'', body:'', url:'', dataUrl:'', cloudUrl:'', imgUrl:'',
            mode:'up', ratio:'20:13', cropX:50, btns:[], titleSize:'sm', bodySize:'xs',
-           titleColor:'#111111', bodyColor:'#555555', borderColor:'none', bodyBgColor:'#FFFFFF' }
+           titleColor:'#111111', bodyColor:'#555555', bodyBgColor:'#FFFFFF' }
 }
 
 // ── Boot ───────────────────────────────────────────────────
@@ -1104,7 +1084,6 @@ function save(){
   c.bodySize  =document.getElementById('fBodySize').value||'xs'
   c.titleColor =document.getElementById('fTitleColor').value||'#111111'
   c.bodyColor  =document.getElementById('fBodyColor').value||'#555555'
-  c.borderColor =document.getElementById('fBorderColor').value||'none'
   c.bodyBgColor =document.getElementById('fBodyBgColor').value||'#FFFFFF'
 }
 function load(){
@@ -1118,7 +1097,6 @@ function load(){
   document.getElementById('fBodySize').value  =c.bodySize||'xs'
   document.getElementById('fTitleColor').value =c.titleColor||'#111111'
   document.getElementById('fBodyColor').value  =c.bodyColor||'#555555'
-  document.getElementById('fBorderColor').value=c.borderColor||'none'
   document.getElementById('fBodyBgColor').value=c.bodyBgColor||'#FFFFFF'
   // Upload preview
   if(c.mode==='up'){
@@ -1404,11 +1382,6 @@ function buildFlex(){
     const imgSrc=c.mode==='up'?(c.cloudUrl||c.dataUrl||''):(c.imgUrl||'')
     const cardAction=c.url?{type:'uri',label:c.title||'查看',uri:c.url}:undefined
     const bubble={type:'bubble',size:'kilo'}
-    // Apply border color
-    if(c.borderColor && c.borderColor !== 'none'){
-      bubble.borderColor = c.borderColor
-      bubble.borderWidth = 'light'
-    }
     // Apply body + footer background color
     if(c.bodyBgColor && c.bodyBgColor !== '#FFFFFF'){
       if(!bubble.styles) bubble.styles = {}
