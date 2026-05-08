@@ -180,6 +180,9 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 .toast.err{border-color:rgba(255,77,77,.5);color:var(--red);}
 .toast.warn{border-color:rgba(245,166,35,.5);color:var(--amber);}
 .sp{height:18px;}
+select.fi-s{-webkit-appearance:none;appearance:none;cursor:pointer;}
+.tpl-card-del{position:absolute;top:4px;right:4px;width:18px;height:18px;background:rgba(255,77,77,0.8);border:none;border-radius:50%;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.tpl-card{position:relative;}
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-backdrop.show{display:flex;}
 .modal-box{background:var(--sf);border-radius:var(--r) var(--r) 0 0;padding:24px 20px 36px;width:100%;max-width:600px;}
@@ -260,6 +263,10 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
 <div class="wrap">
   <div class="sp"></div>
 
+  <p class="slabel">我的範本庫 <span id="myLibCount" style="color:var(--blue);font-size:9px;"></span></p>
+  <div class="tpl-scroll" id="myLibRow">
+    <div style="font-size:12px;color:var(--txd);padding:8px 2px;">尚無自訂範本，做好卡片後按「存入範本庫」</div>
+  </div>
   <p class="slabel">快速範本</p>
   <div class="tpl-scroll" id="tplRow"></div>
 
@@ -270,6 +277,10 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
       新增卡片
     </button>
     <button class="btn-del" id="btnDel" onclick="delCard()" disabled>刪除此張</button>
+    <button class="btn-add" onclick="saveToMyLib()" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.4);color:var(--blue);">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      存入範本庫
+    </button>
   </div>
   <div class="strip" id="strip"></div>
 
@@ -327,10 +338,34 @@ header{padding:16px 16px 10px;display:flex;align-items:center;justify-content:sp
         <div class="field">
           <div class="flabel">標題 <span class="req">*</span><span class="cc" id="cc">0 / 40</span></div>
           <input class="fi" type="text" id="fTitle" placeholder="輸入卡片標題（最多 40 字）" maxlength="40" oninput="onField()">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <span style="font-size:10px;color:var(--txd);white-space:nowrap;">標題字體</span>
+            <select class="fi-s" id="fTitleSize" onchange="onField()" style="flex:1;background:var(--sf2);">
+              <option value="xs">xs 最小</option>
+              <option value="sm" selected>sm 小（預設）</option>
+              <option value="md">md 中</option>
+              <option value="lg">lg 大</option>
+              <option value="xl">xl 很大</option>
+              <option value="xxl">xxl 超大</option>
+              <option value="3xl">3xl 特大</option>
+            </select>
+          </div>
         </div>
         <div class="field">
           <div class="flabel">說明文字</div>
-          <input class="fi" type="text" id="fBody" placeholder="說明文字（選填，最多 120 字）" maxlength="120" oninput="onField()"><div style="font-size:10px;color:var(--txd);margin-top:3px;text-align:right;" id="bcnt">0 / 120</div>
+          <input class="fi" type="text" id="fBody" placeholder="說明文字（選填，最多 120 字）" maxlength="120" oninput="onField()">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <span style="font-size:10px;color:var(--txd);white-space:nowrap;">說明字體</span>
+            <select class="fi-s" id="fBodySize" onchange="onField()" style="flex:1;background:var(--sf2);">
+              <option value="xxs">xxs 極小</option>
+              <option value="xs" selected>xs 最小（預設）</option>
+              <option value="sm">sm 小</option>
+              <option value="md">md 中</option>
+              <option value="lg">lg 大</option>
+              <option value="xl">xl 很大</option>
+            </select>
+            <span style="font-size:10px;color:var(--txd);text-align:right;white-space:nowrap;" id="bcnt">0 / 120</span>
+          </div>
         </div>
         <div class="field">
           <div class="flabel">卡片整體連結</div>
@@ -424,7 +459,7 @@ let dragStartX = 0, dragStartCrop = 50, dragging = false
 
 function mkCard(){
   return { title:'', body:'', url:'', dataUrl:'', cloudUrl:'', imgUrl:'',
-           mode:'up', ratio:'20:13', cropX:50, btns:[] }
+           mode:'up', ratio:'20:13', cropX:50, btns:[], titleSize:'sm', bodySize:'xs' }
 }
 
 // ── Boot ───────────────────────────────────────────────────
@@ -444,6 +479,7 @@ function mkCard(){
     autoInit(lid)
   }
   renderAll()
+  loadMyLib()
 })()
 
 // ── Cloudinary ─────────────────────────────────────────────
@@ -711,6 +747,105 @@ function renderTemplates(){
     </div>`
   ).join('')
 }
+
+// ── My Library ───────────────────────────────────────────
+const LIB_CLD_NAME = 'my_templates'  // fixed filename on Cloudinary
+
+let myLib = []  // [{name, icon, cards}]
+
+async function loadMyLib(){
+  try{
+    const res = await fetch(`https://res.cloudinary.com/dgizk0jkb/raw/upload/${LIB_CLD_NAME}.json?t=${Date.now()}`)
+    if(res.ok) myLib = await res.json()
+  } catch(e){ myLib = [] }
+  renderMyLib()
+}
+
+async function saveLibToCloud(){
+  const blob = new Blob([JSON.stringify(myLib)], {type:'application/json'})
+  const fd = new FormData()
+  fd.append('file', blob, LIB_CLD_NAME+'.json')
+  fd.append('upload_preset', 'image_uploader')
+  fd.append('resource_type', 'raw')
+  fd.append('public_id', LIB_CLD_NAME)
+  fd.append('overwrite', 'true')
+  const res = await fetch('https://api.cloudinary.com/v1_1/dgizk0jkb/raw/upload', {method:'POST',body:fd})
+  if(!res.ok) throw new Error('雲端儲存失敗')
+  return true
+}
+
+function renderMyLib(){
+  const row = document.getElementById('myLibRow')
+  const cnt = document.getElementById('myLibCount')
+  if(!myLib.length){
+    row.innerHTML = '<div style="font-size:12px;color:var(--txd);padding:8px 2px;">尚無自訂範本，做好卡片後按「存入範本庫」</div>'
+    cnt.textContent = ''
+    return
+  }
+  cnt.textContent = `(${myLib.length})`
+  row.innerHTML = myLib.map((t,i)=>`
+    <div class="tpl-card" onclick="applyMyLib(${i})">
+      <button class="tpl-card-del" onclick="event.stopPropagation();delMyLib(${i})" title="刪除">×</button>
+      <div class="tpl-ic">${t.icon||'📋'}</div>
+      <div class="tpl-name">${t.name}</div>
+      <div class="tpl-desc">${t.cards.length} 張卡片</div>
+    </div>`
+  ).join('')
+}
+
+function applyMyLib(i){
+  save()
+  const tpl = myLib[i]
+  const newCards = tpl.cards.map(c=>({...mkCard(),...c,btns:(c.btns||[]).map(b=>({...b}))}))
+  const hasExisting = cards.some(c=>c.title||c.imgUrl||c.cloudUrl||c.dataUrl||c.url)
+  if(!hasExisting){
+    cards=newCards; idx=0; renderAll(); toast('已套用：'+tpl.name,'ok')
+    return
+  }
+  _pendingTpl = {newCards, name:tpl.name}
+  showTplModal()
+}
+
+async function delMyLib(i){
+  myLib.splice(i,1)
+  renderMyLib()
+  try{ await saveLibToCloud(); toast('已刪除','ok') }
+  catch(e){ toast('刪除失敗：'+e.message,'err') }
+}
+
+async function saveToMyLib(){
+  save()
+  const hasContent = cards.some(c=>c.title||c.imgUrl||c.cloudUrl||c.dataUrl||c.url)
+  if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
+
+  // Ask for name
+  const name = prompt('為這組卡片命名（將存入範本庫）：', cards[0]?.title||'我的範本')
+  if(!name) return
+
+  const entry = {
+    name: name.trim(),
+    icon: '📋',
+    cards: JSON.parse(JSON.stringify(cards))
+  }
+
+  const btn = document.querySelector('[onclick="saveToMyLib()"]')
+  if(btn){ btn.textContent='⏳ 儲存中…'; btn.disabled=true }
+
+  try{
+    myLib.push(entry)
+    await saveLibToCloud()
+    renderMyLib()
+    toast('✓ 已存入範本庫：'+name,'ok')
+  } catch(e){
+    myLib.pop() // rollback
+    toast('儲存失敗：'+e.message,'err')
+  } finally{
+    if(btn){
+      btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 存入範本庫'
+      btn.disabled=false
+    }
+  }
+}
 function applyTemplate(i){
   save()
   const tpl=TEMPLATES[i]
@@ -772,6 +907,8 @@ function save(){
   c.body =document.getElementById('fBody').value
   c.url  =document.getElementById('fUrl').value
   c.imgUrl=document.getElementById('imgUrl').value
+  c.titleSize=document.getElementById('fTitleSize').value||'sm'
+  c.bodySize =document.getElementById('fBodySize').value||'xs'
 }
 function load(){
   const c=cards[idx]
@@ -780,6 +917,8 @@ function load(){
   document.getElementById('fUrl').value  =c.url  ||''
   document.getElementById('imgUrl').value=c.imgUrl||''
   updCC(); updBC(); setModeUI(c.mode||'up'); setRatioUI(c.ratio||'20:13')
+  document.getElementById('fTitleSize').value=c.titleSize||'sm'
+  document.getElementById('fBodySize').value =c.bodySize||'xs'
   // Upload preview
   if(c.mode==='up'){
     const src=c.cloudUrl||c.dataUrl
@@ -1021,8 +1160,8 @@ function renderCardPreview(){
   }
 
   const bodyHtml=(c.title||c.body)?`<div class="cprev-body">
-    ${c.title?`<div class="cprev-title">${c.title}</div>`:''}
-    ${c.body?`<div class="cprev-body-text">${c.body}</div>`:''}
+    ${c.title?`<div class="cprev-title" style="font-size:${({xxs:'10px',xs:'11px',sm:'13px',md:'15px',lg:'17px',xl:'20px',xxl:'24px','3xl':'29px'}[c.titleSize||'sm']||'13px')}">${c.title}</div>`:''}
+    ${c.body?`<div class="cprev-body-text" style="font-size:${({xxs:'9px',xs:'10px',sm:'11px',md:'13px',lg:'15px',xl:'17px'}[c.bodySize||'xs']||'10px')}">${c.body}</div>`:''}
   </div>`:'';
 
   const footerHtml=validBtns.length>0?`<div class="cprev-footer">
@@ -1087,8 +1226,8 @@ function buildFlex(){
     }
 
     const bodyContents=[]
-    if(c.title) bodyContents.push({type:'text',text:c.title.slice(0,40),weight:'bold',size:'sm',wrap:true,color:'#111111'})
-    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,120),size:'xs',wrap:true,color:'#555555',margin:c.title?'sm':undefined})
+    if(c.title) bodyContents.push({type:'text',text:c.title.slice(0,40),weight:'bold',size:c.titleSize||'sm',wrap:true,color:'#111111'})
+    if(c.body)  bodyContents.push({type:'text',text:c.body.slice(0,120),size:c.bodySize||'xs',wrap:true,color:'#555555',margin:c.title?'sm':undefined})
     if(bodyContents.length>0) bubble.body={type:'box',layout:'vertical',contents:bodyContents,paddingAll:'md',action:cardAction}
 
     const validBtns=(c.btns||[]).filter(b=>b.label&&b.url)
