@@ -973,6 +973,25 @@ async function saveToMyLib(){
   const hasContent = cards.some(c=>c.title||c.imgUrl||c.cloudUrl||c.dataUrl||c.url)
   if(!hasContent){ toast('請先填寫至少一張卡片','err'); return }
 
+  // Make sure every locally-uploaded image has finished uploading to Cloudinary
+  // first. Otherwise its raw base64 data would get written straight into
+  // Firestore below and blow past Firestore's 1MB document size limit — this
+  // is what causes "儲存失敗" when the template includes an uploaded photo.
+  const pending = cards.filter(c=>c.mode==='up'&&c.dataUrl&&!c.cloudUrl)
+  if(pending.length>0){
+    toast('圖片上傳中，請稍候…','')
+    try{
+      for(const card of cards){
+        if(card.mode==='up'&&card.dataUrl&&!card.cloudUrl){
+          card.cloudUrl = await uploadToCloudinary(card.dataUrl, card.cropX||50) || ''
+        }
+      }
+    }catch(err){
+      toast('圖片上傳失敗，無法儲存範本：'+err.message,'err')
+      return
+    }
+  }
+
   // Ask for name
   const name = prompt('為這組卡片命名（將存入範本庫）：', cards[0]?.title||'我的範本')
   if(!name) return
@@ -994,11 +1013,28 @@ async function saveToMyLib(){
     folder = prompt('輸入資料夾名稱（可留空，不分類）：', '') || ''
   }
 
+  // Strip the raw base64 dataUrl before saving — the small Cloudinary URL is
+  // all that's needed to render the card, and keeping dataUrl around is
+  // exactly what overflows Firestore's document size limit.
+  const cardsForSave = cards.map(c=>{
+    const clone = {...c}
+    delete clone.dataUrl
+    return clone
+  })
+
   const entry = {
     name: name.trim(),
     icon: '📋',
     folder: folder.trim(),
-    cards: JSON.parse(JSON.stringify(cards))
+    cards: JSON.parse(JSON.stringify(cardsForSave))
+  }
+
+  // Friendlier size guard before we even hit the network — Firestore's hard
+  // limit is 1,048,576 bytes per document, so warn early if we're close.
+  const entrySize = JSON.stringify(entry).length
+  if(entrySize > 900000){
+    toast('範本內容過大（'+Math.round(entrySize/1024)+'KB），請減少圖片或文字','err')
+    return
   }
 
   const btn = document.querySelector('[onclick="saveToMyLib()"]')
@@ -1008,6 +1044,8 @@ async function saveToMyLib(){
     myLib.push(entry)
     await saveLibToCloud()
     renderMyLib()
+    renderStrip()
+    renderCardPreview()
     toast('✓ 已存入範本庫：'+name,'ok')
   } catch(e){
     myLib.pop() // rollback
